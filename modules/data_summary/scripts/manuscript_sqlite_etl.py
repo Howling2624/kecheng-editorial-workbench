@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import re
 import sqlite3
 from collections import defaultdict
@@ -398,8 +399,7 @@ def extract_field(row: tuple[Any, ...], config: FieldConfig | None) -> Any:
 def setup_database(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     if db_path.exists():
-        backup = db_path.with_name(db_path.stem + "_上次运行备份_" + datetime.now().strftime("%Y%m%d_%H%M%S") + db_path.suffix)
-        db_path.replace(backup)
+        db_path.unlink()
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
@@ -500,6 +500,45 @@ def setup_database(db_path: Path) -> sqlite3.Connection:
     return conn
 
 
+def publish_database(staged_path: Path, target_path: Path) -> Path | None:
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    backup_path = None
+
+    if target_path.exists():
+        backup_path = target_path.with_name(
+            target_path.stem
+            + "_上次运行备份_"
+            + datetime.now().strftime("%Y%m%d_%H%M%S")
+            + target_path.suffix
+        )
+        source = sqlite3.connect(f"file:{target_path.as_posix()}?mode=ro", uri=True, timeout=30)
+        backup = sqlite3.connect(backup_path)
+        try:
+            source.backup(backup)
+        finally:
+            backup.close()
+            source.close()
+
+    try:
+        staged_path.replace(target_path)
+        return backup_path
+    except PermissionError:
+        source = sqlite3.connect(staged_path, timeout=30)
+        target = sqlite3.connect(target_path, timeout=30)
+        try:
+            source.backup(target)
+            target.commit()
+            try:
+                target.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            except sqlite3.Error:
+                pass
+        finally:
+            target.close()
+            source.close()
+        staged_path.unlink(missing_ok=True)
+        return backup_path
+
+
 def make_row_json(row: tuple[Any, ...], headers: list[str]) -> str:
     payload = {}
     for idx, value in enumerate(row, start=1):
@@ -522,7 +561,10 @@ def run_build(backup_dir: Path, config_dir: Path, sqlite_path: Path) -> dict[str
     sheet_configs = [config for config in load_sheet_configs(config_dir) if config.enabled]
     field_configs = load_field_configs(config_dir)
     author_configs = load_author_configs(config_dir)
-    conn = setup_database(sqlite_path)
+    working_sqlite_path = sqlite_path.with_name(
+        f".{sqlite_path.stem}.building-{os.getpid()}{sqlite_path.suffix}"
+    )
+    conn = setup_database(working_sqlite_path)
     imported_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     candidates: dict[str, list[dict[str, Any]]] = defaultdict(list)
     candidate_authors: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -828,8 +870,10 @@ def run_build(backup_dir: Path, config_dir: Path, sqlite_path: Path) -> dict[str
     summary_path = sqlite_path.with_name("稿件数据_导入摘要.json")
     summary_path.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
     conn.close()
+    backup_path = publish_database(working_sqlite_path, sqlite_path)
     stats["sqlite_path"] = str(sqlite_path)
     stats["summary_path"] = str(summary_path)
+    stats["backup_path"] = str(backup_path) if backup_path else ""
     return stats
 
 
