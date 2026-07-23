@@ -1,0 +1,51 @@
+.local/
+__pycache__/
+*.py[cod]
+work_temp/
+modules/*/work_temp/
+modules/*/__pycache__/
+modules/*/build/
+modules/*/dist/
+*.log
+
+# Local runtime and generated artifacts
+Python/
+output/
+*.tmp
+*.bak
+*.kcbundle
+
+# Secrets and local accounts
+.env
+.env.*
+!.env.example
+**/config.json
+**/api_key.txt
+**/credentials*.json
+**/client_secret*.json
+**/token*.json
+**/token*.pickle
+**/cookies*.json
+**/session*.json
+**/publisher_accounts.json
+
+# Editorial data: never publish these files
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.xlsx
+*.xls
+*.csv
+*.pdf
+*.doc
+*.docx
+modules/data_summary/稿件表数据/稿件表备份/
+modules/data_summary/稿件表数据/整合配置/
+modules/data_summary/稿件表数据/整合结果/
+modules/data_summary/稿件表数据/整合探查报告/
+modules/data_summary/科研诚信风险报告/
+
+# Internal, journal-specific inspection helpers
+modules/data_summary/scripts/inspect_selected_header_rows.py
+modules/data_summary/scripts/verify_manuscript_sqlite.py

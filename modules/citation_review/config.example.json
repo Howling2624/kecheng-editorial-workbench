@@ -1,0 +1,10 @@
+{
+  "deepseek_api_key": "",
+  "deepseek_api_url": "https://api.deepseek.com",
+  "deepseek_model": "deepseek-v4-flash",
+  "host": "127.0.0.1",
+  "port": 5055,
+  "debug": false,
+  "request_timeout": 60,
+  "work_dir": "work_temp"
+}

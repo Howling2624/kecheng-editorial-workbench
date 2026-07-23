@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 数据查询</title>
+  <style>
+    :root {
+      --paper: #06100e;
+      --surface: rgba(8, 25, 23, 0.9);
+      --surface-2: rgba(3, 15, 13, 0.86);
+      --ink: #e9fff8;
+      --muted: #86aa9f;
+      --line: rgba(88, 255, 221, 0.24);
+      --field: rgba(3, 15, 13, 0.86);
+      --accent: #36e7ba;
+      --accent-2: #6bbcff;
+      --danger: #ff6b70;
+      --button: linear-gradient(180deg, rgba(14, 43, 39, 0.9), rgba(5, 18, 16, 0.74));
+      --button-hover: linear-gradient(180deg, rgba(21, 61, 55, 0.96), rgba(8, 28, 25, 0.84));
+      --primary: linear-gradient(135deg, #23d9ad, #6bbcff);
+      --primary-ink: #04100e;
+      --shadow: 0 22px 64px rgba(0, 0, 0, 0.42), 0 0 34px rgba(54, 231, 186, 0.08);
+      --font-ui: "Bahnschrift", "Microsoft YaHei", "PingFang SC", sans-serif;
+      --font-code: "Cascadia Mono", Consolas, monospace;
+    }
+
+    body.light {
+      --paper: #f4fbf8;
+      --surface: rgba(255, 255, 255, 0.9);
+      --surface-2: rgba(246, 253, 251, 0.9);
+      --ink: #102923;
+      --muted: #5a756f;
+      --line: rgba(23, 128, 113, 0.26);
+      --field: rgba(255, 255, 255, 0.92);
+      --accent: #0f8f79;
+      --accent-2: #277da8;
+      --danger: #b83d45;
+      --button: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(233, 248, 244, 0.9));
+      --button-hover: linear-gradient(180deg, #ffffff, #dff5ef);
+      --primary: linear-gradient(135deg, #0fba96, #3c9ed2);
+      --primary-ink: #ffffff;
+      --shadow: 0 18px 48px rgba(4, 54, 48, 0.12), 0 0 24px rgba(13, 159, 134, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--paper); }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font-ui);
+      background:
+        linear-gradient(90deg, rgba(70, 255, 218, 0.07) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(70, 255, 218, 0.05) 1px, transparent 1px),
+        var(--paper);
+      background-size: 30px 30px;
+    }
+    body.light {
+      background:
+        linear-gradient(90deg, rgba(27, 143, 128, 0.08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(27, 143, 128, 0.06) 1px, transparent 1px),
+        var(--paper);
+      background-size: 30px 30px;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+    .shell {
+      width: min(1320px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 28px 0 34px;
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+    .db-path {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .tabs {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-2);
+    }
+    .tab {
+      min-width: 112px;
+      min-height: 38px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+    }
+    .tab.active {
+      background: var(--primary);
+      color: var(--primary-ink);
+      box-shadow: 0 0 22px rgba(54, 231, 186, 0.15);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 13px;
+      background: var(--button);
+      color: var(--ink);
+      font-weight: 800;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--button-hover); border-color: var(--accent); }
+    .btn.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: var(--primary-ink);
+      box-shadow: 0 0 28px rgba(54, 231, 186, 0.18);
+    }
+    .theme {
+      min-width: 78px;
+    }
+
+    .panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--surface), var(--surface-2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .ask-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 480px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .form-panel {
+      padding: 18px;
+    }
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .hint { color: var(--muted); font-size: 12px; font-weight: 600; }
+    textarea, input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: 0;
+      background: var(--field);
+      color: var(--ink);
+    }
+    textarea {
+      min-height: 230px;
+      padding: 14px;
+      resize: vertical;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+    input, select {
+      height: 40px;
+      padding: 0 12px;
+    }
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(54, 231, 186, 0.13);
+    }
+    .ask-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .notice {
+      display: none;
+      margin-top: 12px;
+      border: 1px solid rgba(255, 107, 112, 0.32);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--danger);
+      background: rgba(255, 107, 112, 0.08);
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+    .notice.show { display: block; }
+
+    .result-head,
+    .viewer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--surface-2) 86%, transparent);
+    }
+    .result-title {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .sql-box {
+      display: none;
+      margin: 0;
+      max-height: 110px;
+      overflow: auto;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-family: var(--font-code);
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+    .sql-box.show { display: block; }
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 250px);
+      min-height: 360px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      min-width: 110px;
+      border-bottom: 1px solid var(--line);
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--surface-2);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    td {
+      max-width: 420px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ink);
+    }
+    tr:hover td { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+    .empty {
+      padding: 34px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .viewer-head {
+      align-items: end;
+      flex-wrap: wrap;
+    }
+    .viewer-controls {
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) minmax(180px, 1fr) 104px auto auto;
+      gap: 10px;
+      align-items: end;
+      width: 100%;
+    }
+    .pager {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    dialog {
+      width: min(480px, calc(100vw - 28px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop { background: rgba(1, 8, 7, 0.72); backdrop-filter: blur(5px); }
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .dialog-head h2 { margin: 0; font-size: 17px; }
+    .dialog-body { padding: 18px; }
+    .field { margin-bottom: 14px; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+    @media (max-width: 980px) {
+      .topbar, .ask-grid { grid-template-columns: 1fr; }
+      .top-actions { justify-content: flex-start; }
+      .viewer-controls { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 26px, 1320px); padding-top: 20px; }
+      .tabs, .viewer-controls { grid-template-columns: 1fr; width: 100%; }
+      .top-actions, .ask-actions, .result-head { align-items: stretch; flex-direction: column; }
+      .btn, .tab, .theme { width: 100%; }
+      h1 { font-size: 30px; }
+      .table-wrap { max-height: 58vh; }
+    }
+  </style>
+  <script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>
+  <style>
+    .embedded .topbar { display: none; }
+    .embedded .shell { width: 100%; max-width: none; padding: 18px; }
+    .embedded dialog { display: none; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">DATA QUERY</p>
+        <h1>AI 数据查询</h1>
+        <p class="db-path" id="dbPath">正在读取数据库</p>
+      </div>
+      <div class="top-actions">
+        <span class="status" id="apiStatus">API 检查中</span>
+        <button class="btn" type="button" onclick="openSettings()">配置 API</button>
+        <button class="btn theme" type="button" onclick="toggleTheme()" id="themeBtn">Dark</button>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="页面">
+      <button class="tab active" id="askTab" type="button" onclick="showPage('ask')">AI 问答</button>
+      <button class="tab" id="viewerTab" type="button" onclick="showPage('viewer')">数据库浏览</button>
+    </nav>
+
+    <section class="page active" id="askPage" style="margin-top: 14px;">
+      <div class="ask-grid">
+        <div class="panel form-panel">
+          <label for="question">输入问题 <span class="hint">DeepSeek 生成 SQL</span></label>
+          <textarea id="question" placeholder="例如：各期刊一共有多少篇稿件？按数量从高到低排列"></textarea>
+          <div class="ask-actions">
+            <button class="btn primary" id="askBtn" type="button" onclick="ask()">查询</button>
+            <button class="btn" type="button" onclick="clearQuestion()">清空</button>
+          </div>
+          <div class="notice" id="errorBox"></div>
+        </div>
+
+        <div class="panel">
+          <div class="result-head">
+            <div class="result-title" id="resultTitle">等待查询</div>
+            <div class="top-actions">
+              <button class="btn" type="button" onclick="toggleSql()">SQL</button>
+              <button class="btn" type="button" onclick="downloadCsv()">下载 CSV</button>
+            </div>
+          </div>
+          <pre class="sql-box" id="sqlBox"></pre>
+          <div class="table-wrap">
+            <table id="resultTable"><tbody><tr><td><div class="empty">结果会显示在这里。</div></td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="viewerPage" style="margin-top: 14px;">
+      <div class="panel">
+        <div class="viewer-head">
+          <div class="viewer-controls">
+            <div>
+              <label for="tableSelect">表</label>
+              <select id="tableSelect" onchange="loadTable(0)"></select>
+            </div>
+            <div>
+              <label for="tableSearch">搜索</label>
+              <input id="tableSearch" type="search" placeholder="在当前表中搜索" oninput="queueTableSearch()">
+            </div>
+            <div>
+              <label for="limitSelect">行数</label>
+              <select id="limitSelect" onchange="loadTable(0)">
+                <option value="50">50</option>
+                <option value="100" selected>100</option>
+                <option value="200">200</option>
+                <option value="500">500</option>
+              </select>
+            </div>
+            <button class="btn" id="prevBtn" type="button" onclick="loadTable(tableState.offset - tableState.limit)">上一页</button>
+            <button class="btn" id="nextBtn" type="button" onclick="loadTable(tableState.offset + tableState.limit)">下一页</button>
+          </div>
+          <div class="pager" id="pagerText">-</div>
+        </div>
+        <div class="table-wrap">
+          <table id="viewerTable"><tbody><tr><td><div class="empty">请选择表。</div></td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="settingsDialog">
+    <div class="dialog-head">
+      <h2>DeepSeek API</h2>
+      <button class="btn" type="button" onclick="closeSettings()">关闭</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field">
+        <label for="apiKeyInput">API Key <span class="hint" id="apiMasked">未配置</span></label>
+        <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-..." />
+      </div>
+      <div class="field">
+        <label for="apiUrlInput">API URL</label>
+        <input id="apiUrlInput" type="text" />
+      </div>
+      <div class="field">
+        <label for="modelInput">模型</label>
+        <input id="modelInput" type="text" />
+      </div>
+      <div class="dialog-actions">
+        <button class="btn" type="button" onclick="closeSettings()">取消</button>
+        <button class="btn primary" id="saveSettingsBtn" type="button" onclick="saveSettings()">保存并测试</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const state = { columns: [], rows: [], sql: "" };
+    const tableState = { offset: 0, limit: 100, total: 0, filtered: 0 };
+    let schema = null;
+    let searchTimer = null;
+
+    const $ = id => document.getElementById(id);
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    function showPage(page) {
+      $("askPage").classList.toggle("active", page === "ask");
+      $("viewerPage").classList.toggle("active", page === "viewer");
+      $("askTab").classList.toggle("active", page === "ask");
+      $("viewerTab").classList.toggle("active", page === "viewer");
+      if (page === "viewer" && !$("tableSelect").value && schema) initViewer();
+    }
+
+    function setError(message) {
+      $("errorBox").textContent = message || "";
+      $("errorBox").classList.toggle("show", !!message);
+    }
+
+    function clearQuestion() {
+      $("question").value = "";
+      setError("");
+    }
+
+    async function ask() {
+      const question = $("question").value.trim();
+      if (!question) {
+        setError("请先输入问题。");
+        return;
+      }
+      setError("");
+      $("askBtn").disabled = true;
+      $("askBtn").textContent = "查询中";
+      try {
+        const data = await postJson("api/ask", { question });
+        state.columns = data.columns || [];
+        state.rows = data.rows || [];
+        state.sql = data.sql || "";
+        $("sqlBox").textContent = state.sql;
+        $("resultTitle").textContent = `${state.rows.length} 行结果${data.truncated ? "，已截断" : ""}${data.explanation ? " · " + data.explanation : ""}`;
+        renderTable("resultTable", state.columns, state.rows);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        $("askBtn").disabled = false;
+        $("askBtn").textContent = "查询";
+      }
+    }
+
+    async function postJson(url, payload) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok || data.success === false) throw new Error(data.error || "请求失败");
+      return data;
+    }
+
+    function renderTable(targetId, columns, rows) {
+      const table = $(targetId);
+      if (!columns.length) {
+        table.innerHTML = '<tbody><tr><td><div class="empty">没有数据。</div></td></tr></tbody>';
+        return;
+      }
+      const head = `<thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr></thead>`;
+      const body = rows.length
+        ? `<tbody>${rows.map(row => `<tr>${columns.map(c => `<td title="${escapeHtml(row[c])}">${escapeHtml(row[c] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody>`
+        : `<tbody><tr><td colspan="${columns.length}"><div class="empty">没有匹配记录。</div></td></tr></tbody>`;
+      table.innerHTML = head + body;
+    }
+
+    function toggleSql() {
+      $("sqlBox").classList.toggle("show");
+    }
+
+    function downloadCsv() {
+      if (!state.columns.length) {
+        setError("当前没有可下载的查询结果。");
+        return;
+      }
+      const rows = [state.columns, ...state.rows.map(row => state.columns.map(c => row[c]))];
+      const csv = rows.map(row => row.map(value => {
+        const text = String(value ?? "");
+        return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+      }).join(",")).join("\r\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "ai-query-result.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadSchema() {
+      const response = await fetch("api/schema");
+      schema = await response.json();
+      $("dbPath").textContent = schema.database || "";
+      initViewer();
+    }
+
+    function initViewer() {
+      const tables = schema?.tables || [];
+      $("tableSelect").innerHTML = tables.map(table => `<option value="${escapeHtml(table.name)}">${escapeHtml(table.name)} (${table.row_count})</option>`).join("");
+      if (tables.some(table => table.name === "manuscripts")) {
+        $("tableSelect").value = "manuscripts";
+      }
+      if (tables.length) loadTable(0);
+    }
+
+    function queueTableSearch() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => loadTable(0), 300);
+    }
+
+    async function loadTable(offset) {
+      const table = $("tableSelect").value;
+      if (!table) return;
+      const limit = Number($("limitSelect").value || 100);
+      const search = $("tableSearch").value.trim();
+      offset = Math.max(0, Number(offset || 0));
+      const url = `api/table?table=${encodeURIComponent(table)}&limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        renderTable("viewerTable", [], []);
+        $("pagerText").textContent = data.error || "读取失败";
+        return;
+      }
+      tableState.offset = data.offset;
+      tableState.limit = data.limit;
+      tableState.total = data.total;
+      tableState.filtered = data.filtered;
+      renderTable("viewerTable", data.columns || [], data.rows || []);
+      const start = data.filtered ? data.offset + 1 : 0;
+      const end = data.offset + (data.rows || []).length;
+      $("pagerText").textContent = `${start}-${end} / ${data.filtered}${data.filtered !== data.total ? "，总计 " + data.total : ""}`;
+      $("prevBtn").disabled = !data.has_prev;
+      $("nextBtn").disabled = !data.has_next;
+    }
+
+    async function loadSettings() {
+      const response = await fetch("api/settings");
+      const data = await response.json();
+      $("apiStatus").textContent = data.configured ? `DeepSeek ${data.apiKeyMasked || "已配置"}` : "DeepSeek 未配置";
+      $("apiMasked").textContent = data.apiKeyMasked || "未配置";
+      $("apiUrlInput").value = data.apiUrl || "https://api.deepseek.com/v1/chat/completions";
+      $("modelInput").value = data.model || "deepseek-chat";
+    }
+
+    function openSettings() {
+      $("settingsDialog").showModal();
+      loadSettings();
+    }
+
+    function closeSettings() {
+      $("settingsDialog").close();
+    }
+
+    async function saveSettings() {
+      $("saveSettingsBtn").disabled = true;
+      $("saveSettingsBtn").textContent = "测试中";
+      try {
+        await postJson("api/settings", {
+          apiKey: $("apiKeyInput").value.trim(),
+          apiUrl: $("apiUrlInput").value.trim(),
+          model: $("modelInput").value.trim()
+        });
+        $("apiKeyInput").value = "";
+        await loadSettings();
+        closeSettings();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        $("saveSettingsBtn").disabled = false;
+        $("saveSettingsBtn").textContent = "保存并测试";
+      }
+    }
+
+    function applyTheme(theme) {
+      document.body.classList.toggle("light", theme === "light");
+      $("themeBtn").textContent = theme === "light" ? "Light" : "Dark";
+    }
+
+    function toggleTheme() {
+      const next = document.body.classList.contains("light") ? "dark" : "light";
+      localStorage.setItem("ai-query-theme", next);
+      applyTheme(next);
+    }
+
+    $("question").addEventListener("keydown", event => {
+      if (event.ctrlKey && event.key === "Enter") ask();
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      applyTheme(localStorage.getItem("ai-query-theme") || "dark");
+      loadSettings();
+      loadSchema();
+    });
+  </script>
+</body>
+</html>

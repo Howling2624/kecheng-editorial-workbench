@@ -1,0 +1,14 @@
+__pycache__/
+.venv/
+build/
+dist/
+release/
+config.json
+api_key.txt
+work_temp/
+*.pyc
+*.log
+.pytest_cache/
+
+# Legacy workflow export; not required for the Flask project.
+citation checker.yml

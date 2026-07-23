@@ -1,0 +1,36 @@
+# Local configuration and secrets
+config.json
+.env
+*.env
+api_key.txt
+*token*
+credentials*.json
+
+# Databases and user data
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.xlsx
+*.xls
+*.csv
+
+# Runtime output
+__pycache__/
+*.py[cod]
+work_temp/
+logs/
+exports/
+downloads/
+
+# Build and packaging output
+build/
+dist/
+*.spec
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

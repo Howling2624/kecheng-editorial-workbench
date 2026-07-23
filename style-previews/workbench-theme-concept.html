@@ -1,0 +1,1313 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>科诚编辑工作台 · 视觉风格提案</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23075b4b'/%3E%3Cg fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 18c8-2 14 1 19 6v25c-5-5-11-8-19-6z'/%3E%3Cpath d='M32 24c5-5 11-8 19-6v25c-8-2-14 1-19 6z'/%3E%3Cpath d='m39 16 7-7 6 6-7 7-8 2z' fill='%237bd9bd' stroke='white'/%3E%3C/g%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #efeee8;
+      --paper: #f9f8f3;
+      --paper-strong: #ffffff;
+      --paper-soft: #e7e7df;
+      --ink: #17201d;
+      --ink-2: #4e5b56;
+      --ink-3: #7d8883;
+      --line: rgba(23, 32, 29, 0.12);
+      --line-strong: rgba(23, 32, 29, 0.22);
+      --brand: #0c6d59;
+      --brand-strong: #075345;
+      --brand-soft: #d8ebe4;
+      --accent: #d76b45;
+      --accent-soft: #f4ddd3;
+      --gold: #a87827;
+      --gold-soft: #f0e4c7;
+      --danger: #b84545;
+      --shadow: 0 28px 70px rgba(33, 47, 41, 0.11);
+      --shadow-soft: 0 12px 32px rgba(33, 47, 41, 0.075);
+      --display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, serif;
+      --ui: "Noto Sans CJK SC", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0d1412;
+      --paper: #141d1a;
+      --paper-strong: #1a2521;
+      --paper-soft: #202e29;
+      --ink: #f0f3ee;
+      --ink-2: #adb9b3;
+      --ink-3: #78867f;
+      --line: rgba(226, 237, 230, 0.11);
+      --line-strong: rgba(226, 237, 230, 0.2);
+      --brand: #6bd3b2;
+      --brand-strong: #91e4c9;
+      --brand-soft: #193c32;
+      --accent: #f08a64;
+      --accent-soft: #492a22;
+      --gold: #e4bd72;
+      --gold-soft: #3e3422;
+      --danger: #ef8585;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+      --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--ui);
+      background:
+        radial-gradient(circle at 78% 8%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 25rem),
+        radial-gradient(circle at 28% 92%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 28rem),
+        var(--bg);
+      transition: color 260ms ease, background 260ms ease;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      opacity: 0.28;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--brand) 32%, transparent);
+      outline-offset: 3px;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 12px;
+      border-right: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 86%, transparent);
+      backdrop-filter: blur(22px);
+    }
+
+    .brand {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--brand-strong) 72%, white);
+      border-radius: 15px 5px 15px 5px;
+      color: #f8fffc;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--brand-strong) 72%, #27a785), var(--brand-strong) 58%, #063e34);
+      box-shadow: 0 11px 24px color-mix(in srgb, var(--brand) 27%, transparent);
+    }
+
+    .brand::after {
+      position: absolute;
+      inset: -22px auto auto -18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      content: "";
+      background: rgba(255, 255, 255, 0.13);
+    }
+
+    .brand svg {
+      position: relative;
+      z-index: 1;
+      width: 29px;
+      height: 29px;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+    }
+
+    .rail-nav {
+      width: 100%;
+      display: grid;
+      gap: 9px;
+      margin-top: 48px;
+    }
+
+    .nav-button {
+      position: relative;
+      width: 64px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 17px;
+      color: var(--ink-3);
+      background: transparent;
+      cursor: pointer;
+      transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    .nav-button svg {
+      width: 21px;
+      height: 21px;
+      stroke-width: 1.8;
+    }
+
+    .nav-button:hover {
+      color: var(--ink);
+      background: var(--paper-soft);
+      transform: translateY(-1px);
+    }
+
+    .nav-button.active {
+      color: var(--brand-strong);
+      background: var(--paper-strong);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .nav-button.active::before {
+      position: absolute;
+      left: -12px;
+      width: 3px;
+      height: 22px;
+      border-radius: 0 4px 4px 0;
+      content: "";
+      background: var(--brand);
+    }
+
+    .nav-button span {
+      position: absolute;
+      right: -87px;
+      z-index: 30;
+      width: max-content;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      font-size: 12px;
+      background: var(--paper-strong);
+      box-shadow: var(--shadow-soft);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-5px);
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .nav-button:hover span {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .rail-bottom {
+      display: grid;
+      gap: 12px;
+      margin-top: auto;
+    }
+
+    .online {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper-strong);
+    }
+
+    .online::after {
+      width: 9px;
+      height: 9px;
+      border: 3px solid var(--paper-strong);
+      border-radius: 50%;
+      content: "";
+      background: var(--brand);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent);
+    }
+
+    .workspace {
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 clamp(22px, 3vw, 48px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .identity {
+      display: flex;
+      align-items: baseline;
+      gap: 13px;
+    }
+
+    .identity strong {
+      font-family: var(--display);
+      font-size: 18px;
+      letter-spacing: 0.03em;
+    }
+
+    .identity span {
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-2);
+      font-size: 12px;
+    }
+
+    .sync-status i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent);
+    }
+
+    .theme-toggle {
+      position: relative;
+      height: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper-soft);
+    }
+
+    .theme-toggle button {
+      min-width: 68px;
+      border: 0;
+      border-radius: 9px;
+      color: var(--ink-3);
+      font-size: 12px;
+      background: transparent;
+      cursor: pointer;
+      transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .theme-toggle button.active {
+      color: var(--ink);
+      background: var(--paper-strong);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    main {
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      padding: 42px clamp(22px, 3vw, 48px) 56px;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 226px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+      gap: 34px;
+      overflow: hidden;
+      padding: clamp(28px, 4vw, 54px);
+      border: 1px solid var(--line);
+      border-radius: 30px 10px 30px 10px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      position: absolute;
+      top: -116px;
+      right: -85px;
+      width: 330px;
+      height: 330px;
+      border: 52px solid color-mix(in srgb, var(--brand) 9%, transparent);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 15px;
+      color: var(--brand);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 26px;
+      height: 1px;
+      content: "";
+      background: currentColor;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(34px, 4.1vw, 62px);
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 1.08;
+    }
+
+    .hero-copy > p:last-child {
+      max-width: 680px;
+      margin: 20px 0 0;
+      color: var(--ink-2);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .hero-aside {
+      position: relative;
+      z-index: 1;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-left: 28px;
+      border-left: 1px solid var(--line);
+    }
+
+    .date-block span {
+      display: block;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .date-block strong {
+      display: block;
+      margin-top: 7px;
+      font-family: var(--display);
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .readiness {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 35px;
+    }
+
+    .readiness-ring {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-family: var(--mono);
+      font-size: 11px;
+      background: conic-gradient(var(--brand) 0 86%, var(--paper-soft) 86%);
+    }
+
+    .readiness-ring::before {
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      content: "";
+      background: var(--paper);
+    }
+
+    .readiness-ring b {
+      position: relative;
+      font-weight: 600;
+    }
+
+    .readiness div:last-child span,
+    .readiness div:last-child strong {
+      display: block;
+    }
+
+    .readiness div:last-child span {
+      color: var(--ink-3);
+      font-size: 11px;
+    }
+
+    .readiness div:last-child strong {
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 18px 0 32px;
+    }
+
+    .metric {
+      position: relative;
+      min-height: 132px;
+      overflow: hidden;
+      padding: 22px 22px 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .metric:hover {
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-3px);
+    }
+
+    .metric::after {
+      position: absolute;
+      right: -22px;
+      bottom: -38px;
+      width: 92px;
+      height: 92px;
+      border: 17px solid color-mix(in srgb, var(--brand) 8%, transparent);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .metric:nth-child(4)::after {
+      border-color: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+
+    .metric span {
+      color: var(--ink-3);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 9px;
+      font-family: var(--display);
+      font-size: clamp(27px, 2.8vw, 38px);
+      font-weight: 650;
+      letter-spacing: -0.04em;
+    }
+
+    .metric small {
+      display: block;
+      margin-top: 8px;
+      color: var(--brand);
+      font-size: 11px;
+    }
+
+    .metric.warning small {
+      color: var(--accent);
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(310px, 0.65fr);
+      gap: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--paper);
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 25px 28px 20px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 23px;
+      font-weight: 650;
+      letter-spacing: -0.025em;
+    }
+
+    .panel-heading p {
+      margin: 7px 0 0;
+      color: var(--ink-3);
+      font-size: 12px;
+    }
+
+    .panel-heading > span {
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+    }
+
+    .workflow-list {
+      padding: 0 13px 13px;
+    }
+
+    .workflow {
+      position: relative;
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: 17px;
+      align-items: center;
+      min-height: 126px;
+      padding: 19px 17px;
+      border-top: 1px solid var(--line);
+      border-radius: 15px;
+      transition: background 180ms ease, transform 180ms ease;
+    }
+
+    .workflow:hover {
+      background: var(--paper-strong);
+      transform: translateX(4px);
+    }
+
+    .workflow:first-child {
+      border-top-color: transparent;
+    }
+
+    .workflow-mark {
+      position: relative;
+      width: 46px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+      border-radius: 14px 5px 14px 5px;
+      color: var(--brand-strong);
+      background: var(--brand-soft);
+    }
+
+    .workflow-mark::after {
+      position: absolute;
+      top: -17px;
+      right: -13px;
+      width: 36px;
+      height: 36px;
+      border: 8px solid currentColor;
+      border-radius: 50%;
+      content: "";
+      opacity: 0.07;
+    }
+
+    .workflow-mark svg {
+      position: relative;
+      z-index: 1;
+      width: 27px;
+      height: 27px;
+      overflow: visible;
+      stroke-width: 1.8;
+      filter: drop-shadow(0 2px 3px color-mix(in srgb, currentColor 15%, transparent));
+    }
+
+    .workflow:nth-child(2) .workflow-mark {
+      color: var(--gold);
+      background: var(--gold-soft);
+    }
+
+    .workflow:nth-child(3) .workflow-mark {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .workflow-copy {
+      min-width: 0;
+    }
+
+    .workflow-title {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .workflow-title h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 680;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--brand-strong);
+      font-size: 10px;
+      background: var(--brand-soft);
+    }
+
+    .status-pill::before {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      content: "";
+      background: currentColor;
+    }
+
+    .workflow-copy > p {
+      max-width: 760px;
+      margin: 8px 0 10px;
+      color: var(--ink-2);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 13px;
+    }
+
+    .quick-links button {
+      padding: 0;
+      border: 0;
+      color: var(--ink-3);
+      font-size: 11px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .quick-links button:hover {
+      color: var(--brand);
+    }
+
+    .enter {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--ink-2);
+      background: var(--paper);
+      cursor: pointer;
+      transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .workflow:hover .enter {
+      color: #f8fffc;
+      border-color: var(--brand);
+      background: var(--brand);
+      transform: translateX(2px);
+    }
+
+    .enter svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .side-column {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .system-card {
+      padding: 25px;
+    }
+
+    .system-card h2,
+    .memo-card h2 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 20px;
+      font-weight: 650;
+    }
+
+    .system-list {
+      display: grid;
+      gap: 4px;
+      margin-top: 21px;
+    }
+
+    .system-row {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 11px;
+      align-items: center;
+      min-height: 58px;
+      padding: 8px 4px;
+      border-top: 1px solid var(--line);
+    }
+
+    .system-row:first-child {
+      border-top: 0;
+    }
+
+    .system-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    .system-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .system-row span {
+      color: var(--ink-2);
+      font-size: 12px;
+    }
+
+    .system-row strong {
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .memo-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 205px;
+      padding: 27px;
+      color: #f7fbf8;
+      border-color: transparent;
+      background:
+        linear-gradient(140deg, color-mix(in srgb, var(--brand-strong) 94%, #081b15), #142b25);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .memo-card::after {
+      position: absolute;
+      right: -55px;
+      bottom: -78px;
+      width: 190px;
+      height: 190px;
+      border: 30px solid rgba(255, 255, 255, 0.07);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .memo-card .eyebrow {
+      color: #9de3cb;
+    }
+
+    .memo-card p {
+      max-width: 320px;
+      margin: 15px 0 0;
+      color: rgba(247, 251, 248, 0.72);
+      font-size: 12px;
+      line-height: 1.75;
+    }
+
+    .memo-link {
+      position: absolute;
+      right: 24px;
+      bottom: 22px;
+      z-index: 1;
+      border: 0;
+      color: #f7fbf8;
+      font-size: 11px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .preview-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      margin-top: 24px;
+      padding: 0 4px;
+      color: var(--ink-3);
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .preview-note b {
+      color: var(--ink-2);
+      font-weight: 600;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero,
+    .metric,
+    .panel {
+      animation: rise 520ms both;
+    }
+
+    .metric:nth-child(1) { animation-delay: 70ms; }
+    .metric:nth-child(2) { animation-delay: 110ms; }
+    .metric:nth-child(3) { animation-delay: 150ms; }
+    .metric:nth-child(4) { animation-delay: 190ms; }
+    .content-grid > *:first-child { animation-delay: 230ms; }
+    .content-grid > *:last-child { animation-delay: 270ms; }
+
+    @media (max-width: 1100px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-aside {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        padding: 22px 0 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+
+      .readiness {
+        margin-top: 0;
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side-column {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        display: block;
+      }
+
+      .rail {
+        position: fixed;
+        inset: auto 12px 12px;
+        z-index: 50;
+        width: auto;
+        height: 68px;
+        flex-direction: row;
+        justify-content: center;
+        padding: 7px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .brand,
+      .rail-bottom {
+        display: none;
+      }
+
+      .rail-nav {
+        width: auto;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        margin: 0;
+      }
+
+      .nav-button {
+        width: 58px;
+        height: 52px;
+      }
+
+      .nav-button.active::before,
+      .nav-button span {
+        display: none;
+      }
+
+      .topbar {
+        height: auto;
+        align-items: flex-start;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+
+      .identity span,
+      .sync-status {
+        display: none;
+      }
+
+      main {
+        padding-top: 24px;
+        padding-bottom: 108px;
+      }
+
+      .hero {
+        padding: 27px 24px;
+        border-radius: 24px 8px 24px 8px;
+      }
+
+      .hero-aside {
+        grid-template-columns: 1fr;
+      }
+
+      .readiness {
+        margin-top: 20px;
+      }
+
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .side-column {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow {
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .workflow-mark {
+        width: 42px;
+        height: 48px;
+      }
+
+      .enter {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .theme-toggle button {
+        min-width: 48px;
+      }
+
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric {
+        min-height: 112px;
+      }
+
+      .panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .preview-note {
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail" aria-label="主导航">
+      <div class="brand" aria-label="科诚编辑工作台">
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <path d="M8.5 13.5c6.4-1.7 11.6.4 15.5 4.7v20.6c-3.9-4.3-9.1-6.4-15.5-4.7V13.5Z" fill="rgba(255,255,255,.16)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M24 18.2c3.9-4.3 9.1-6.4 15.5-4.7v20.6c-6.4-1.7-11.6.4-15.5 4.7V18.2Z" fill="rgba(255,255,255,.08)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="m29.5 13.4 7.8-7.8 5.2 5.2-7.8 7.8-7 2.1 1.8-7.3Z" fill="#91e4c9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="m35.2 7.7 5.2 5.2M11.8 19.1c3.4-.4 6.4.5 9 2.7M11.8 24.4c3.4-.4 6.4.5 9 2.7M36.4 24.4c-3.4-.4-6.4.5-9 2.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <nav class="rail-nav">
+        <button class="nav-button active" type="button" aria-label="工作台">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h6v6H4zM14 4h6v10h-6zM4 14h6v6H4zM14 18h6v2h-6z"/></svg>
+          <span>工作台</span>
+        </button>
+        <button class="nav-button" type="button" aria-label="数据汇总">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>
+          <span>数据汇总</span>
+        </button>
+        <button class="nav-button" type="button" aria-label="伦理审查">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>
+          <span>伦理审查</span>
+        </button>
+        <button class="nav-button" type="button" aria-label="引用检查">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+          <span>引用检查</span>
+        </button>
+      </nav>
+
+      <div class="rail-bottom">
+        <button class="nav-button" type="button" aria-label="系统设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg>
+          <span>系统设置</span>
+        </button>
+        <div class="online" title="系统运行正常"></div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="identity">
+          <strong>科诚编辑工作台</strong>
+          <span>Editorial Operations</span>
+        </div>
+        <div class="top-actions">
+          <div class="sync-status"><i></i><span>全部服务已同步</span></div>
+          <div class="theme-toggle" aria-label="主题预览">
+            <button class="active" type="button" data-theme-choice="light">明亮</button>
+            <button type="button" data-theme-choice="dark">深色</button>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Editorial command center</p>
+            <h1>让每一篇稿件，都沿着清晰的路径抵达出版。</h1>
+            <p>从数据整理、伦理审查到引用核验，关键任务、风险提示和系统状态在同一视野中完成交接。</p>
+          </div>
+          <aside class="hero-aside">
+            <div class="date-block">
+              <span>Thursday · Workday 204</span>
+              <strong>2026 年 7 月 23 日</strong>
+            </div>
+            <div class="readiness">
+              <div class="readiness-ring"><b>86%</b></div>
+              <div>
+                <span>今日工作区就绪度</span>
+                <strong>3 个模块运行正常</strong>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="metric-grid" aria-label="核心指标">
+          <article class="metric">
+            <span>标准稿件</span>
+            <strong>12,864</strong>
+            <small>↑ 本周新增 186 篇</small>
+          </article>
+          <article class="metric">
+            <span>作者记录</span>
+            <strong>38,420</strong>
+            <small>身份字段完整率 97.2%</small>
+          </article>
+          <article class="metric">
+            <span>覆盖编辑部</span>
+            <strong>24</strong>
+            <small>全部数据库在线</small>
+          </article>
+          <article class="metric warning">
+            <span>待处理提示</span>
+            <strong>17</strong>
+            <small>其中 4 项需要优先确认</small>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel">
+            <header class="panel-heading">
+              <div>
+                <h2>编辑流程</h2>
+                <p>按任务意图进入工作区，减少工具与窗口之间的切换。</p>
+              </div>
+              <span>03 ACTIVE MODULES</span>
+            </header>
+
+            <div class="workflow-list">
+              <section class="workflow">
+                <div class="workflow-mark" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4.5" y="4.5" width="23" height="23" rx="7" fill="currentColor" opacity=".09" stroke="none"/>
+                    <path d="M9 22.5v-6M16 22.5v-12M23 22.5v-8.5"/>
+                    <path d="M7.5 25h17"/>
+                    <circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="23" cy="11.5" r="1.5" fill="currentColor" stroke="none"/>
+                  </svg>
+                </div>
+                <div class="workflow-copy">
+                  <div class="workflow-title">
+                    <h3>编辑部数据汇总</h3>
+                    <span class="status-pill">运行中</span>
+                  </div>
+                  <p>查询稿件数据库、浏览标准字段，或从 Excel 数据重新生成汇总库。</p>
+                  <div class="quick-links">
+                    <button type="button">AI 查数</button>
+                    <button type="button">浏览数据库</button>
+                    <button type="button">重建数据</button>
+                  </div>
+                </div>
+                <button class="enter" type="button" aria-label="进入编辑部数据汇总">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </section>
+
+              <section class="workflow">
+                <div class="workflow-mark" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 3.8 25.5 8v6.7c0 6.3-3.7 10.9-9.5 13.5-5.8-2.6-9.5-7.2-9.5-13.5V8L16 3.8Z" fill="currentColor" opacity=".1" stroke="none"/>
+                    <path d="M16 4.8 24.5 8.6v6c0 5.6-3.3 9.7-8.5 12.1-5.2-2.4-8.5-6.5-8.5-12.1v-6L16 4.8Z"/>
+                    <path d="m11.5 15.6 3 3 6.5-7"/>
+                  </svg>
+                </div>
+                <div class="workflow-copy">
+                  <div class="workflow-title">
+                    <h3>稿件伦理审查</h3>
+                    <span class="status-pill">运行中</span>
+                  </div>
+                  <p>识别 Ethical Statement 风险，汇总可疑表述并导出结构化审查报告。</p>
+                  <div class="quick-links">
+                    <button type="button">新建审查</button>
+                    <button type="button">查看最近报告</button>
+                  </div>
+                </div>
+                <button class="enter" type="button" aria-label="进入稿件伦理审查">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </section>
+
+              <section class="workflow">
+                <div class="workflow-mark" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 4.5h13l5 5v18H7z" fill="currentColor" opacity=".08" stroke="none"/>
+                    <path d="M7 4.5h13l5 5v18H7zM20 4.5v5h5"/>
+                    <path d="M11 14.5h10M11 22.5h6"/>
+                    <path d="M11 18.7c0-1.5.7-2.4 2.1-2.7v1.4c-.5.2-.8.6-.8 1.2h1.2v2.1H11v-2Zm5 0c0-1.5.7-2.4 2.1-2.7v1.4c-.5.2-.8.6-.8 1.2h1.2v2.1H16v-2Z" fill="currentColor" stroke="none"/>
+                  </svg>
+                </div>
+                <div class="workflow-copy">
+                  <div class="workflow-title">
+                    <h3>稿件引用检查</h3>
+                    <span class="status-pill">运行中</span>
+                  </div>
+                  <p>复核近五年引用、非学术来源与作者重复情况，支持 AI 辅助判断。</p>
+                  <div class="quick-links">
+                    <button type="button">开始检查</button>
+                    <button type="button">打开检查记录</button>
+                  </div>
+                </div>
+                <button class="enter" type="button" aria-label="进入稿件引用检查">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </section>
+            </div>
+          </article>
+
+          <aside class="side-column">
+            <section class="panel system-card">
+              <h2>系统脉搏</h2>
+              <div class="system-list">
+                <div class="system-row">
+                  <div class="system-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="3"/></svg>
+                  </div>
+                  <span>AI 服务</span>
+                  <strong>DeepSeek V4</strong>
+                </div>
+                <div class="system-row">
+                  <div class="system-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"/></svg>
+                  </div>
+                  <span>汇总数据库</span>
+                  <strong>128.6 MB</strong>
+                </div>
+                <div class="system-row">
+                  <div class="system-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6M12 8v5l3 2"/></svg>
+                  </div>
+                  <span>最近同步</span>
+                  <strong>10:42</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel memo-card">
+              <p class="eyebrow">Workflow note</p>
+              <h2>一个入口，三个独立工作区。</h2>
+              <p>保留成熟业务能力，同时统一状态、设置与任务切换；后续可逐步沉淀共用数据和审查标准。</p>
+              <button class="memo-link" type="button">查看集成说明 →</button>
+            </section>
+          </aside>
+        </section>
+
+        <footer class="preview-note">
+          <span><b>风格关键词：</b>编辑出版、纸张质感、信息秩序、克制的品牌色</span>
+          <span>此文件为视觉提案，不会修改当前正式工作台。</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const themeButtons = [...document.querySelectorAll("[data-theme-choice]")];
+
+    function setTheme(theme) {
+      root.dataset.theme = theme;
+      themeButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.themeChoice === theme);
+      });
+    }
+
+    themeButtons.forEach((button) => {
+      button.addEventListener("click", () => setTheme(button.dataset.themeChoice));
+    });
+
+    document.querySelectorAll(".nav-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".nav-button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>

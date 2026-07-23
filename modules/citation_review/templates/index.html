@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>引用审查工具</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2306100e'/%3E%3Cpath d='M16 14h32v36H16z' fill='%23e9fff8'/%3E%3Cpath d='M22 24h20M22 32h20M22 40h12' stroke='%2306100e' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --ink: #e9fff8;
+            --muted: #83a79e;
+            --line: rgba(88, 255, 221, 0.22);
+            --paper: #06100e;
+            --field: rgba(3, 15, 13, 0.86);
+            --green: #36e7ba;
+            --amber: #ffc85b;
+            --red: #ff6b70;
+            --blue: #6bbcff;
+            --shadow: 0 22px 64px rgba(0, 0, 0, 0.42), 0 0 34px rgba(54, 231, 186, 0.08);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        * {
+            transition: background 220ms ease, border-color 220ms ease, color 180ms ease, box-shadow 220ms ease;
+        }
+
+        html {
+            min-width: 320px;
+            background: var(--paper);
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            font-family: "Bahnschrift", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+            background:
+                linear-gradient(90deg, rgba(70, 255, 218, 0.07) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(70, 255, 218, 0.05) 1px, transparent 1px),
+                linear-gradient(130deg, rgba(54, 231, 186, 0.12), transparent 34%, rgba(107, 188, 255, 0.08) 68%, transparent),
+                var(--paper);
+            background-size: 30px 30px, 30px 30px, auto, auto;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(120deg, rgba(54, 231, 186, 0.10), transparent 28%, rgba(255, 200, 91, 0.07) 62%, transparent 88%),
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 4px);
+            opacity: 0.72;
+            mix-blend-mode: screen;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            width: min(1480px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 34px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 10px 0 24px;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            text-shadow: 0 0 18px rgba(54, 231, 186, 0.62);
+        }
+
+        h1,
+        h2,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(30px, 3.6vw, 50px);
+            line-height: 1.16;
+            letter-spacing: 0;
+            text-shadow: 0 0 26px rgba(54, 231, 186, 0.18);
+        }
+
+        .subtitle {
+            max-width: 720px;
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-status,
+        .hint {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .toolbar-status {
+            min-width: 132px;
+            text-align: right;
+        }
+
+        .theme-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 42px;
+            border: 1px solid rgba(88, 255, 221, 0.28);
+            border-radius: 999px;
+            padding: 5px 10px 5px 6px;
+            cursor: pointer;
+            background: rgba(5, 18, 16, 0.72);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .theme-toggle input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toggle-track {
+            position: relative;
+            width: 58px;
+            height: 30px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #071713, #0b2d28);
+            box-shadow: inset 0 0 0 1px rgba(88, 255, 221, 0.26), inset 0 0 18px rgba(54, 231, 186, 0.08);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #35f0c0, #6bbcff);
+            box-shadow: 0 0 14px rgba(54, 231, 186, 0.7);
+            transform: translateX(0);
+            transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .theme-toggle input:checked + .toggle-track .toggle-thumb {
+            transform: translateX(28px);
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(10, 30, 27, 0.92), rgba(5, 18, 16, 0.88));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            background:
+                linear-gradient(90deg, rgba(54, 231, 186, 0.24), transparent 24%, transparent 76%, rgba(107, 188, 255, 0.16)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 42%);
+            opacity: 0.55;
+        }
+
+        .panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .command-panel {
+            position: sticky;
+            top: 20px;
+        }
+
+        .panel-head,
+        .report-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(5, 19, 17, 0.78);
+        }
+
+        .report-toolbar {
+            padding: 14px 20px;
+            background: rgba(3, 15, 13, 0.38);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .panel-note {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .form-body,
+        .result-body {
+            padding: 20px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        label,
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        textarea,
+        input,
+        select {
+            width: 100%;
+            border: 1px solid rgba(88, 255, 221, 0.22);
+            border-radius: 8px;
+            background: var(--field);
+            color: var(--ink);
+            outline: none;
+            box-shadow: inset 0 0 0 1px transparent;
+        }
+
+        textarea {
+            min-height: 430px;
+            resize: vertical;
+            padding: 14px;
+            line-height: 1.58;
+            font-family: "Cascadia Mono", Consolas, "Microsoft YaHei", monospace;
+            font-size: 13px;
+        }
+
+        input,
+        select {
+            min-height: 38px;
+            padding: 0 10px;
+        }
+
+        .mini-textarea {
+            min-height: 58px;
+            padding: 8px;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        textarea:focus,
+        input:focus,
+        select:focus {
+            border-color: rgba(54, 231, 186, 0.72);
+            box-shadow: 0 0 0 3px rgba(54, 231, 186, 0.12);
+        }
+
+        .mode-tabs,
+        .section-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .mode-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-bottom: 16px;
+        }
+
+        .mode-tab,
+        .section-tab {
+            min-height: 38px;
+            border: 1px solid rgba(88, 255, 221, 0.18);
+            border-radius: 8px;
+            padding: 0 12px;
+            background: rgba(3, 15, 13, 0.62);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .mode-tab.active,
+        .section-tab.active {
+            border-color: rgba(54, 231, 186, 0.72);
+            background: linear-gradient(135deg, rgba(54, 231, 186, 0.18), rgba(107, 188, 255, 0.12));
+            color: var(--ink);
+            box-shadow: 0 0 22px rgba(54, 231, 186, 0.10);
+        }
+
+        .actions,
+        .report-actions,
+        .dialog-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            border-radius: 8px;
+            padding: 0 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:disabled {
+            cursor: wait;
+            opacity: 0.58;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #36e7ba, #6bbcff);
+            color: #06231c;
+            box-shadow: 0 14px 36px rgba(54, 231, 186, 0.28);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(88, 255, 221, 0.28);
+            background: rgba(5, 18, 16, 0.72);
+            color: var(--ink);
+        }
+
+        .btn-compact {
+            min-height: 38px;
+            padding: 0 12px;
+            font-size: 12px;
+        }
+
+        .standard-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .standard-btn {
+            min-height: 32px;
+            border: 1px solid rgba(255, 200, 91, 0.34);
+            border-radius: 8px;
+            padding: 0 10px;
+            background: rgba(3, 15, 13, 0.56);
+            color: var(--ink);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .standard-btn:hover,
+        .standard-btn:focus-visible {
+            border-color: rgba(255, 200, 91, 0.72);
+            box-shadow: 0 0 18px rgba(255, 200, 91, 0.10);
+            outline: none;
+        }
+
+        .standard-status {
+            min-height: 18px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+        .main-stack {
+            display: grid;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            padding: 18px 20px;
+        }
+
+        .stat {
+            min-width: 0;
+            border: 1px solid rgba(88, 255, 221, 0.15);
+            border-radius: 8px;
+            padding: 14px;
+            background: rgba(3, 15, 13, 0.56);
+        }
+
+        .stat strong {
+            display: block;
+            overflow: hidden;
+            color: var(--ink);
+            font-size: 23px;
+            font-weight: 900;
+            line-height: 1.08;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stat span {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .stat small {
+            display: block;
+            margin-top: 6px;
+            color: var(--amber);
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .meter {
+            height: 8px;
+            margin: 0 20px 20px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(3, 15, 13, 0.88);
+            box-shadow: inset 0 0 0 1px rgba(88, 255, 221, 0.14);
+        }
+
+        .meter-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--amber), var(--blue));
+            box-shadow: 0 0 24px rgba(54, 231, 186, 0.42);
+        }
+
+        .report-view {
+            display: grid;
+            gap: 14px;
+            min-height: 220px;
+            border: 1px solid rgba(88, 255, 221, 0.14);
+            border-radius: 8px;
+            padding: 18px;
+            background: rgba(3, 15, 13, 0.74);
+            color: var(--ink);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .report-card {
+            border: 1px solid rgba(88, 255, 221, 0.16);
+            border-radius: 8px;
+            padding: 14px;
+            background: rgba(3, 15, 13, 0.46);
+        }
+
+        .report-card:only-child {
+            grid-column: 1 / -1;
+        }
+
+        .report-card h3 {
+            margin: 0 0 10px;
+            color: var(--green);
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .report-list {
+            display: grid;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .report-list li {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            border-bottom: 1px solid rgba(88, 255, 221, 0.10);
+            padding-bottom: 7px;
+        }
+
+        .report-list li:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .report-list span {
+            color: var(--muted);
+        }
+
+        .report-list strong {
+            color: var(--ink);
+            text-align: right;
+        }
+
+        .citation-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .citation-item {
+            border: 1px solid rgba(88, 255, 221, 0.12);
+            border-radius: 8px;
+            padding: 12px;
+            background: rgba(3, 15, 13, 0.42);
+        }
+
+        .citation-item strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--ink);
+        }
+
+        .citation-item p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            color: var(--muted);
+        }
+
+        .warnings {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .warning {
+            border: 1px solid rgba(255, 200, 91, 0.30);
+            border-radius: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 200, 91, 0.08);
+            color: #ffe3a1;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.55;
+        }
+
+        .settings-dialog {
+            width: min(520px, calc(100vw - 36px));
+            border: 1px solid rgba(88, 255, 221, 0.26);
+            border-radius: 8px;
+            padding: 0;
+            color: var(--ink);
+            background: linear-gradient(180deg, rgba(10, 30, 27, 0.98), rgba(5, 18, 16, 0.98));
+            box-shadow: var(--shadow);
+        }
+
+        .settings-dialog::backdrop {
+            background: rgba(0, 0, 0, 0.62);
+            backdrop-filter: blur(3px);
+        }
+
+        .dialog-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(5, 19, 17, 0.86);
+        }
+
+        .dialog-body {
+            display: grid;
+            gap: 14px;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        body.light {
+            --ink: #0e211c;
+            --muted: #516b65;
+            --line: rgba(13, 105, 82, 0.24);
+            --paper: #eef8f3;
+            --field: rgba(255, 255, 255, 0.88);
+            --shadow: 0 20px 58px rgba(21, 72, 61, 0.18), 0 0 20px rgba(54, 231, 186, 0.08);
+            background:
+                linear-gradient(90deg, rgba(13, 105, 82, 0.07) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(13, 105, 82, 0.05) 1px, transparent 1px),
+                linear-gradient(130deg, rgba(54, 231, 186, 0.16), transparent 34%, rgba(107, 188, 255, 0.12) 68%, transparent),
+                var(--paper);
+            background-size: 30px 30px, 30px 30px, auto, auto;
+        }
+
+        body.light::before {
+            opacity: 0.34;
+            mix-blend-mode: multiply;
+        }
+
+        body.light .panel,
+        body.light .settings-dialog {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(230, 246, 240, 0.88));
+        }
+
+        body.light .panel-head,
+        body.light .dialog-head,
+        body.light .report-toolbar {
+            background: rgba(236, 250, 244, 0.94);
+        }
+
+        body.light .btn-secondary,
+        body.light .mode-tab,
+        body.light .section-tab,
+        body.light .theme-toggle,
+        body.light .standard-btn {
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        body.light textarea,
+        body.light input,
+        body.light select,
+        body.light .report-view,
+        body.light .report-card,
+        body.light .citation-item,
+        body.light .stat {
+            background: rgba(255, 255, 255, 0.76);
+        }
+
+        body.light .warning {
+            border-color: rgba(178, 109, 0, 0.34);
+            background: rgba(255, 200, 91, 0.18);
+            color: #6f4300;
+        }
+
+        @media (max-width: 1180px) {
+            .topbar,
+            .workspace {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                justify-content: flex-start;
+            }
+
+            .toolbar-status {
+                text-align: left;
+            }
+
+            .command-panel {
+                position: static;
+            }
+
+            .overview-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .shell {
+                width: min(100% - 24px, 1480px);
+                padding-top: 18px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-head,
+            .report-toolbar,
+            .dialog-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            textarea {
+                min-height: 320px;
+            }
+        }
+    </style>
+    <script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>
+    <style>
+        .embedded .topbar { display: none; }
+        .embedded .shell { width: 100%; max-width: none; padding: 18px; }
+        .embedded .settings-dialog { display: none; }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Citation Review Console</p>
+                <h1>引用审查工具</h1>
+                <p class="subtitle">统计引用总数、非学术引用数、近五年引用数，以及出现最多次的作者和次数；接收年份可自行选择。</p>
+            </div>
+            <div class="toolbar">
+                <span class="toolbar-status" id="apiKeyStatus">Checking...</span>
+                <button class="btn btn-secondary btn-compact" type="button" onclick="openApiDialog()">配置 API Key</button>
+                <label class="theme-toggle" title="切换明暗主题">
+                    <input id="themeSwitch" type="checkbox" onchange="toggleTheme(this.checked)">
+                    <span class="toggle-track" aria-hidden="true"><span class="toggle-thumb"></span></span>
+                    <span id="themeText">Dark</span>
+                </label>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <section class="panel command-panel">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">新建审查</h2>
+                        <p class="panel-note">本地规则会先完成结构化解析。</p>
+                    </div>
+                    <span class="hint" id="entryHint">0 条</span>
+                </div>
+                <div class="form-body">
+                    <div class="mode-tabs" role="tablist" aria-label="分析模式">
+                        <button class="mode-tab active" id="modeAuto" type="button" onclick="setMode('auto')">自动</button>
+                        <button class="mode-tab" id="modeAi" type="button" onclick="setMode('ai')">AI 辅助</button>
+                        <button class="mode-tab" id="modeLocal" type="button" onclick="setMode('local')">本地</button>
+                    </div>
+                    <div class="field">
+                        <label for="acceptanceYearInput">
+                            稿件接收年份
+                            <span class="hint">用于计算近五年引用</span>
+                        </label>
+                        <input id="acceptanceYearInput" type="number" min="1900" max="2100" step="1">
+                    </div>
+                    <div class="field">
+                        <div class="label-row">
+                            <label for="citationsInput">引用列表</label>
+                            <span class="hint" id="charCount">0 字</span>
+                        </div>
+                        <textarea id="citationsInput" spellcheck="false" placeholder="[1] Smith, J., Brown, P., & Lee, K. (2021). Article title. Journal Name, 12(3), 45-60.&#10;[2] Public Health Working Group. (2020). Policy report on public health. https://example.org/report"></textarea>
+                    </div>
+                    <input class="hidden" id="fileInput" type="file" accept=".txt,.bib,.ris,.md" onchange="importTextFile(event)">
+                    <div class="actions">
+                        <button class="btn btn-primary" id="analyzeBtn" type="button" onclick="analyze()">开始审查</button>
+                        <button class="btn btn-secondary" type="button" onclick="document.getElementById('fileInput').click()">导入文本</button>
+                        <button class="btn btn-secondary" type="button" onclick="loadSample()">示例</button>
+                        <button class="btn btn-secondary" type="button" onclick="clearInput()">清空</button>
+                    </div>
+                    <div class="standard-actions" aria-label="标准标注复制">
+                        <button class="standard-btn" type="button" onclick="copyStandardNotice()">复制不合格标注</button>
+                        <span class="standard-status" id="standardCopyStatus" aria-live="polite"></span>
+                    </div>
+                    <div class="warnings" id="inputWarnings"></div>
+                </div>
+            </section>
+
+            <div class="main-stack">
+                <section class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">运行概览</h2>
+                            <p class="panel-note" id="statusHint">等待提交引用列表。</p>
+                        </div>
+                        <span class="hint" id="modeState">自动模式</span>
+                    </div>
+                    <div class="overview-grid">
+                        <div class="stat"><strong id="statEntries">0</strong><span>引用总数</span></div>
+                        <div class="stat"><strong id="statNonAcademic">0</strong><span>非学术引用</span></div>
+                        <div class="stat"><strong id="statRecent">0</strong><span>近五年引用</span><small id="statRecentRate">近五年引用率：0.0%</small></div>
+                        <div class="stat"><strong id="statTopAuthor">-</strong><span>最高频作者 / 次数</span></div>
+                    </div>
+                    <div class="meter" aria-hidden="true"><div class="meter-bar" id="meterBar"></div></div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">审查报告</h2>
+                            <p class="panel-note" id="resultHint">报告生成后会显示在这里。</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-secondary btn-compact" type="button" onclick="copyReport()">复制报告</button>
+                            <button class="btn btn-secondary btn-compact" type="button" onclick="downloadReport()">下载 TXT</button>
+                        </div>
+                    </div>
+                    <div class="report-toolbar">
+                        <div class="section-tabs" role="tablist" aria-label="报告分区">
+                            <button class="section-tab" id="tabAll" type="button" onclick="setSection('all')">全部</button>
+                            <button class="section-tab active" id="tabSummary" type="button" onclick="setSection('summary')">总览</button>
+                            <button class="section-tab" id="tabAuthors" type="button" onclick="setSection('authors')">作者</button>
+                            <button class="section-tab" id="tabNonAcademic" type="button" onclick="setSection('nonAcademic')">非学术</button>
+                            <button class="section-tab" id="tabYears" type="button" onclick="setSection('years')">年份</button>
+                        </div>
+                        <span class="hint" id="reportMeta">未生成</span>
+                    </div>
+                    <div class="result-body">
+                        <div class="report-view empty-state" id="reportBox">还没有审查报告。</div>
+                        <div class="warnings" id="resultWarnings"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <dialog class="settings-dialog" id="apiDialog">
+        <div class="dialog-head">
+            <div>
+                <h2 class="panel-title">配置 DeepSeek API Key</h2>
+                <p class="panel-note">保存前会测试连接。</p>
+            </div>
+            <button class="btn btn-secondary btn-compact" type="button" onclick="closeApiDialog()">关闭</button>
+        </div>
+        <div class="dialog-body">
+            <div class="field">
+                <label for="apiKeyInput">API Key <span class="hint" id="apiKeyDialogState">未保存</span></label>
+                <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+            </div>
+            <div class="field">
+                <label for="apiUrlInput">API 地址</label>
+                <input id="apiUrlInput" type="text" spellcheck="false" placeholder="https://api.deepseek.com">
+            </div>
+            <div class="field">
+                <label for="modelInput">模型</label>
+                <input id="modelInput" type="text" spellcheck="false" placeholder="deepseek-v4-flash">
+            </div>
+            <span class="hint" id="apiKeyDialogStatus">Key 会保存到本机 config.json。</span>
+            <div class="dialog-actions">
+                <button class="btn btn-secondary" type="button" onclick="closeApiDialog()">取消</button>
+                <button class="btn btn-primary" id="saveApiKeyBtn" type="button" onclick="saveApiKey()">测试并保存</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        let currentMode = "auto";
+        let currentReport = "";
+        let currentSections = {};
+        let currentSection = "summary";
+        let currentEntries = [];
+        let currentMetrics = {};
+
+        const journalStandard = {
+            minEntries: 20,
+            minEntriesFloat: 18,
+            maxNonAcademic: 3,
+            maxNonAcademicFloat: 10,
+            minRecentRate: 60,
+            minRecentRateFloat: 40
+        };
+
+        const sampleText = `[1] Smith, J., Brown, P., & Lee, K. (2021). Digital citation quality in academic publishing. Journal of Scholarly Editing, 12(3), 45-60. https://doi.org/10.1234/example.2021.003
+[2] Public Health Working Group. (2020). Policy report on public health preparedness. https://example.org/publications
+[3] Zhang, W., Li, M., and Chen, Y. (2019). Reference behavior in open peer review. Scientometrics, 118(2), 201-220.
+[4] Smith, J. (2022). Editorial transparency and citation screening. Journal of Research Integrity, 7(1), 11-19.
+[5] Community Encyclopedia Contributors. (2021). Citation overview. Open Reference Encyclopedia. https://example.org/citation-overview`;
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            for (const item of ["auto", "ai", "local"]) {
+                const btn = document.getElementById(`mode${item[0].toUpperCase()}${item.slice(1)}`);
+                btn.classList.toggle("active", item === mode);
+            }
+            document.getElementById("modeState").textContent = mode === "auto" ? "自动模式" : mode === "ai" ? "AI 辅助模式" : "本地模式";
+        }
+
+        function setSection(section) {
+            currentSection = section;
+            for (const item of ["all", "summary", "authors", "nonAcademic", "years"]) {
+                const id = item === "nonAcademic" ? "tabNonAcademic" : `tab${item[0].toUpperCase()}${item.slice(1)}`;
+                document.getElementById(id).classList.toggle("active", item === section);
+            }
+            renderReport();
+        }
+
+        function selectedReportText() {
+            return currentSection === "all" ? currentReport : currentSections[currentSection] || "";
+        }
+
+        function renderReport() {
+            const box = document.getElementById("reportBox");
+            if (!currentReport) {
+                box.textContent = "还没有审查报告。";
+                box.classList.add("empty-state");
+                return;
+            }
+            box.classList.remove("empty-state");
+            box.innerHTML = buildReportHtml(currentSection);
+        }
+
+        function buildReportHtml(section) {
+            const metrics = currentMetrics || {};
+            const entries = currentEntries || [];
+            const cards = [];
+
+            if (section === "all" || section === "summary") {
+                cards.push(reportCard("总览", [
+                    ["引用总数", `${metrics.entryCount ?? 0} 条`],
+                    ["非学术引用数", `${metrics.nonAcademicCount ?? 0} 条`],
+                    ["稿件接收年份", metrics.acceptanceYear ?? "-"],
+                    ["近五年范围", `${metrics.recentThreshold ?? "-"} 年及之后`],
+                    ["近五年引用数", `${metrics.recentFiveYearCount ?? 0} 条`],
+                    ["近五年引用率", metrics.recentFiveYearRateText || "0.0%"],
+                    ["最高频作者", formatTopAuthor(metrics)]
+                ]));
+            }
+
+            if (section === "all" || section === "authors") {
+                const stats = metrics.authorStats || {};
+                const repeated = stats.repeated || [];
+                cards.push(`
+                    <article class="report-card">
+                        <h3>作者出现频率</h3>
+                        ${reportList([
+                            ["出现最多次的作者", (stats.top || []).join("、") || "未识别"],
+                            ["出现次数", `${stats.topCount ?? 0} 次`],
+                            ["是否并列第一", stats.hasTie ? "是" : "否"],
+                            ["识别到的作者总数", `${stats.unique ?? 0} 人`]
+                        ])}
+                        ${repeated.length ? `<ul class="citation-list">${repeated.map(item => `
+                            <li class="citation-item">
+                                <strong>${escapeHtml(item.author)}：${escapeHtml(item.count)} 次</strong>
+                                <p>涉及条目 ${escapeHtml((item.entries || []).join("、"))}</p>
+                            </li>`).join("")}</ul>` : `<p class="empty-state">未发现重复作者。</p>`}
+                    </article>
+                `);
+            }
+
+            if (section === "all" || section === "nonAcademic") {
+                const nonAcademic = entries.filter(entry => entry.isNonAcademic);
+                cards.push(`
+                    <article class="report-card">
+                        <h3>非学术引用情况</h3>
+                        ${reportList([["非学术引用数", `${metrics.nonAcademicCount ?? 0} 条`]])}
+                        ${nonAcademic.length ? `<ul class="citation-list">${nonAcademic.map(entry => `
+                            <li class="citation-item">
+                                <strong>第 ${escapeHtml(entry.index)} 条</strong>
+                                <p>${escapeHtml((entry.reasons || []).join("；") || "未记录具体依据")}</p>
+                                <p>${escapeHtml(entry.text)}</p>
+                            </li>`).join("")}</ul>` : `<p class="empty-state">未发现非学术引用。</p>`}
+                    </article>
+                `);
+            }
+
+            if (section === "all" || section === "years") {
+                cards.push(reportCard("引用年份统计", [
+                    ["稿件接收年份", metrics.acceptanceYear ?? "-"],
+                    ["近五年范围", `${metrics.recentThreshold ?? "-"} 年及之后`],
+                    ["近五年引用数", `${metrics.recentFiveYearCount ?? 0} 条`],
+                    ["近五年引用率", metrics.recentFiveYearRateText || "0.0%"],
+                    ["近五年引用条目", formatIndices(metrics.recentFiveYearItems)],
+                    ["能识别年份的引用数量", `${metrics.recognizedYears ?? 0} 条`],
+                    ["最早年份", metrics.earliestYear || "未识别"],
+                    ["最新年份", metrics.latestYear || "未识别"],
+                    ["缺少年份的条目", formatIndices(metrics.missingYearItems)],
+                    ["晚于接收年份的条目", formatIndices(metrics.futureYearItems)]
+                ]));
+            }
+
+            return `<div class="report-grid">${cards.join("")}</div>`;
+        }
+
+        function reportCard(title, rows) {
+            return `<article class="report-card"><h3>${escapeHtml(title)}</h3>${reportList(rows)}</article>`;
+        }
+
+        function reportList(rows) {
+            return `<ul class="report-list">${rows.map(([label, value]) => `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></li>`).join("")}</ul>`;
+        }
+
+        function formatTopAuthor(metrics) {
+            const author = (metrics.topAuthors && metrics.topAuthors[0]) || "";
+            return author ? `${author} / ${metrics.topCount ?? 0} 次` : "未识别";
+        }
+
+        function formatIndices(values) {
+            return values && values.length ? values.join("、") : "无";
+        }
+
+        function updateCounts() {
+            const text = document.getElementById("citationsInput").value;
+            const lines = text.split(/\n+/).map(line => line.trim()).filter(Boolean);
+            const bracketMatches = text.match(/\[\d{1,4}\]/g) || [];
+            const numberedMatches = text.match(/(?:^|\n)\s*\d{1,4}[\.)、](?:\s+|(?!\d))/g) || [];
+            const entryCount = bracketMatches.length ? bracketMatches.length : numberedMatches.length ? numberedMatches.length : lines.length;
+            document.getElementById("charCount").textContent = `${text.length} 字`;
+            document.getElementById("entryHint").textContent = `${text.trim() ? entryCount : 0} 条`;
+        }
+
+        function setApiStatus(text, tone = "muted") {
+            const status = document.getElementById("apiKeyStatus");
+            status.textContent = text;
+            status.style.color = tone === "good" ? "var(--green)" : tone === "warn" ? "var(--amber)" : "var(--muted)";
+            document.getElementById("apiKeyDialogState").textContent = text;
+        }
+
+        function openApiDialog() {
+            const dialog = document.getElementById("apiDialog");
+            if (typeof dialog.showModal === "function") dialog.showModal();
+            else dialog.setAttribute("open", "open");
+            setTimeout(() => document.getElementById("apiKeyInput")?.focus(), 0);
+        }
+
+        function closeApiDialog() {
+            const dialog = document.getElementById("apiDialog");
+            if (typeof dialog.close === "function") dialog.close();
+            else dialog.removeAttribute("open");
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch("api/settings");
+                const data = await response.json();
+                if (!data.success) throw new Error(data.error || "读取配置失败");
+                document.getElementById("apiUrlInput").value = data.apiUrl || "";
+                document.getElementById("modelInput").value = data.model || "";
+                setApiStatus(data.configured ? `已配置：${data.apiKeyMasked}` : "未配置 API Key", data.configured ? "good" : "warn");
+            } catch (error) {
+                setApiStatus("配置读取失败", "warn");
+            }
+        }
+
+        async function saveApiKey() {
+            const button = document.getElementById("saveApiKeyBtn");
+            const status = document.getElementById("apiKeyDialogStatus");
+            const apiKey = document.getElementById("apiKeyInput").value.trim();
+            const apiUrl = document.getElementById("apiUrlInput").value.trim();
+            const model = document.getElementById("modelInput").value.trim();
+            if (!apiKey) {
+                status.textContent = "请填写 API Key。";
+                status.style.color = "var(--amber)";
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "测试中...";
+            status.textContent = "正在测试连接。";
+            status.style.color = "var(--muted)";
+            try {
+                const response = await fetch("api/settings", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({apiKey, apiUrl, model, test: true})
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || "保存失败");
+                setApiStatus(`已保存：${data.apiKeyMasked}`, "good");
+                status.textContent = `保存成功：${data.configPath}`;
+                status.style.color = "var(--green)";
+                document.getElementById("apiKeyInput").value = "";
+                setTimeout(closeApiDialog, 520);
+            } catch (error) {
+                status.textContent = error.message;
+                status.style.color = "var(--red)";
+            } finally {
+                button.disabled = false;
+                button.textContent = "测试并保存";
+            }
+        }
+
+        function setWarnings(targetId, warnings) {
+            const target = document.getElementById(targetId);
+            target.innerHTML = "";
+            for (const warning of warnings || []) {
+                const item = document.createElement("div");
+                item.className = "warning";
+                item.textContent = warning;
+                target.appendChild(item);
+            }
+        }
+
+        async function analyze() {
+            const citations = document.getElementById("citationsInput").value.trim();
+            const button = document.getElementById("analyzeBtn");
+            if (!citations) {
+                setWarnings("inputWarnings", ["请先粘贴引用列表。"]);
+                return;
+            }
+            setWarnings("inputWarnings", []);
+            setWarnings("resultWarnings", []);
+            button.disabled = true;
+            button.textContent = "审查中...";
+            document.getElementById("statusHint").textContent = "正在结构化解析引用列表。";
+            document.getElementById("meterBar").style.width = "44%";
+            document.getElementById("reportMeta").textContent = "生成中";
+            setStandardCopyStatus("");
+
+            try {
+                const response = await fetch("api/analyze", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({citations, mode: currentMode, acceptanceYear: acceptanceYearValue()})
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || "分析失败");
+                applyResult(data);
+                document.getElementById("statusHint").textContent = data.mode === "deepseek-assisted" ? "已完成本地解析和 AI 辅助判断。" : "已完成本地结构化审查。";
+                document.getElementById("meterBar").style.width = "100%";
+            } catch (error) {
+                document.getElementById("statusHint").textContent = "分析失败。";
+                document.getElementById("reportMeta").textContent = "失败";
+                document.getElementById("meterBar").style.width = "0%";
+                const message = error instanceof TypeError && error.message === "Failed to fetch"
+                    ? "无法连接本地服务。请确认是双击 CitationChecker.exe 打开的页面，并且运行窗口没有被关闭；不要直接打开 templates/index.html。"
+                    : error.message;
+                setWarnings("resultWarnings", [message]);
+            } finally {
+                button.disabled = false;
+                button.textContent = "开始审查";
+            }
+        }
+
+        function applyResult(data) {
+            currentReport = data.report || "";
+            currentSections = data.sections || {};
+            currentEntries = data.entries || [];
+            currentMetrics = data.metrics || {};
+            currentSection = "summary";
+            setSection("summary");
+            updateStats(currentMetrics);
+            setWarnings("resultWarnings", data.warnings || []);
+            document.getElementById("resultHint").textContent = `完成于 ${new Date().toLocaleString()}`;
+            document.getElementById("reportMeta").textContent = data.mode === "deepseek-assisted" ? "AI 辅助" : data.mode === "reviewed" ? "已复核" : "本地规则";
+            setStandardCopyStatus("");
+        }
+
+        function updateStats(metrics) {
+            document.getElementById("statEntries").textContent = metrics.entryCount ?? 0;
+            const author = (metrics.topAuthors && metrics.topAuthors[0]) || "-";
+            const count = metrics.topCount ?? 0;
+            document.getElementById("statTopAuthor").textContent = author === "-" ? "-" : `${author} / ${count}`;
+            document.getElementById("statNonAcademic").textContent = metrics.nonAcademicCount ?? 0;
+            document.getElementById("statRecent").textContent = metrics.recentFiveYearCount ?? 0;
+            document.getElementById("statRecentRate").textContent = `近五年引用率：${metrics.recentFiveYearRateText || "0.0%"}`;
+        }
+
+        async function copyReport() {
+            const text = selectedReportText();
+            if (!text) {
+                setWarnings("resultWarnings", ["当前没有可复制的报告。"]);
+                return;
+            }
+            await writeClipboardText(text);
+            document.getElementById("reportMeta").textContent = "已复制";
+        }
+
+        async function copyStandardNotice() {
+            if (!currentReport) {
+                setWarnings("inputWarnings", ["请先完成一次审查，再使用标准按钮。"]);
+                setStandardCopyStatus("");
+                return;
+            }
+
+            const failures = standardFailures();
+            if (!failures.length) {
+                setWarnings("inputWarnings", ["当前结果符合标准，未复制不合格标注。"]);
+                setStandardCopyStatus("符合标准");
+                return;
+            }
+
+            const text = failures.join("\n");
+            try {
+                await writeClipboardText(text);
+                setWarnings("inputWarnings", [`已复制 ${failures.length} 条不合格标注。`]);
+                setStandardCopyStatus("已复制");
+            } catch (error) {
+                setWarnings("inputWarnings", [`复制失败：${error.message}`]);
+                setStandardCopyStatus("复制失败");
+            }
+        }
+
+        function standardFailures() {
+            const metrics = currentMetrics || {};
+            const failures = [];
+            const entryCount = Number(metrics.entryCount || 0);
+            const nonAcademicCount = Number(metrics.nonAcademicCount || 0);
+            const recentRate = Number(metrics.recentFiveYearRate || 0);
+            const recentCount = Number(metrics.recentFiveYearCount || 0);
+
+            if (entryCount < journalStandard.minEntries) {
+                failures.push(`引用条数${entryCount}<${journalStandard.minEntries}（浮动${journalStandard.minEntriesFloat}）`);
+            }
+            if (nonAcademicCount > journalStandard.maxNonAcademic) {
+                failures.push(`非学术引用${nonAcademicCount}>${journalStandard.maxNonAcademic}（浮动${journalStandard.maxNonAcademicFloat}条）`);
+            }
+            if (recentRate < journalStandard.minRecentRate) {
+                failures.push(`近五年引用${recentCount}/${entryCount}=${formatPercent(recentRate)}<${journalStandard.minRecentRate}%（浮动${journalStandard.minRecentRateFloat}%）`);
+            }
+            return failures;
+        }
+
+        function formatPercent(value) {
+            const numericValue = Number(value || 0);
+            return `${Number.isInteger(numericValue) ? numericValue : numericValue.toFixed(1)}%`;
+        }
+
+        function setStandardCopyStatus(text) {
+            document.getElementById("standardCopyStatus").textContent = text;
+        }
+
+        async function writeClipboardText(text) {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                await navigator.clipboard.writeText(text);
+                return;
+            }
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.left = "-9999px";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.select();
+            const copied = document.execCommand("copy");
+            textarea.remove();
+            if (!copied) throw new Error("浏览器拒绝写入剪贴板。");
+        }
+
+        function downloadReport() {
+            const text = selectedReportText();
+            if (!text) {
+                setWarnings("resultWarnings", ["当前没有可下载的报告。"]);
+                return;
+            }
+            const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+            link.href = url;
+            link.download = `citation-review-${stamp}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function loadSample() {
+            document.getElementById("citationsInput").value = sampleText;
+            updateCounts();
+        }
+
+        function clearInput() {
+            document.getElementById("citationsInput").value = "";
+            updateCounts();
+            setWarnings("inputWarnings", []);
+        }
+
+        function importTextFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                document.getElementById("citationsInput").value = String(reader.result || "");
+                updateCounts();
+            };
+            reader.readAsText(file, "utf-8");
+            event.target.value = "";
+        }
+
+        function applyTheme(theme) {
+            const isLight = theme === "light";
+            document.body.classList.toggle("light", isLight);
+            document.getElementById("themeSwitch").checked = isLight;
+            document.getElementById("themeText").textContent = isLight ? "Light" : "Dark";
+        }
+
+        function toggleTheme(isLight) {
+            const theme = isLight ? "light" : "dark";
+            localStorage.setItem("citation-checker-theme", theme);
+            applyTheme(theme);
+        }
+
+        function boot() {
+            applyTheme(localStorage.getItem("citation-checker-theme") || "dark");
+            localStorage.removeItem("citation-checker-input");
+            document.getElementById("citationsInput").value = "";
+            const currentYear = new Date().getFullYear();
+            const savedAcceptanceYear = localStorage.getItem("citation-checker-acceptance-year");
+            document.getElementById("acceptanceYearInput").value = savedAcceptanceYear || currentYear;
+            document.getElementById("acceptanceYearInput").addEventListener("input", () => {
+                localStorage.setItem("citation-checker-acceptance-year", acceptanceYearValue());
+            });
+            document.getElementById("citationsInput").addEventListener("input", updateCounts);
+            updateCounts();
+            loadSettings();
+        }
+
+        boot();
+
+        window.addEventListener("pageshow", (event) => {
+            if (event.persisted) {
+                document.getElementById("citationsInput").value = "";
+                updateCounts();
+            }
+        });
+
+        function acceptanceYearValue() {
+            const value = Number(document.getElementById("acceptanceYearInput").value);
+            return Number.isInteger(value) && value >= 1900 ? value : new Date().getFullYear();
+        }
+    </script>
+</body>
+</html>

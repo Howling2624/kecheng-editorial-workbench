@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>编辑工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23075b4b'/%3E%3Cg fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 18c8-2 14 1 19 6v25c-5-5-11-8-19-6z'/%3E%3Cpath d='M32 24c5-5 11-8 19-6v25c-8-2-14 1-19 6z'/%3E%3Cpath d='m39 16 7-7 6 6-7 7-8 2z' fill='%237bd9bd' stroke='white'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='workbench.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail" aria-label="主功能">
+      <a class="brand" href="#/home" aria-label="返回工作台首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M8.5 13.5c6.4-1.7 11.6.4 15.5 4.7v20.6c-3.9-4.3-9.1-6.4-15.5-4.7V13.5Z" fill="rgba(255,255,255,.16)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M24 18.2c3.9-4.3 9.1-6.4 15.5-4.7v20.6c-6.4-1.7-11.6.4-15.5 4.7V18.2Z" fill="rgba(255,255,255,.08)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="m29.5 13.4 7.8-7.8 5.2 5.2-7.8 7.8-7 2.1 1.8-7.3Z" fill="#91e4c9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="m35.2 7.7 5.2 5.2M11.8 19.1c3.4-.4 6.4.5 9 2.7M11.8 24.4c3.4-.4 6.4.5 9 2.7M36.4 24.4c-3.4-.4-6.4.5-9 2.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </a>
+
+      <nav class="rail-nav">
+        <button class="rail-item active" type="button" data-route="home" aria-current="page">
+          <span class="rail-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h6v6H4zM14 4h6v10h-6zM4 14h6v6H4zM14 18h6v2h-6z"/></svg>
+          </span>
+          <span>工作台</span>
+        </button>
+        <button class="rail-item" type="button" data-route="data">
+          <span class="rail-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>
+          </span>
+          <span>数据汇总</span>
+        </button>
+        <button class="rail-item" type="button" data-route="ethics">
+          <span class="rail-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v5c0 4.6 2.8 8.2 7 10 4.2-1.8 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-5"/></svg>
+          </span>
+          <span>伦理审查</span>
+        </button>
+        <button class="rail-item" type="button" data-route="citation">
+          <span class="rail-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+          </span>
+          <span>引用检查</span>
+        </button>
+      </nav>
+
+      <div class="rail-footer">
+        <button class="rail-item" id="settingsButton" type="button">
+          <span class="rail-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg>
+          </span>
+          <span>系统设置</span>
+        </button>
+        <div class="system-line" title="模块运行状态">
+          <span class="status-dot" id="railStatusDot"></span>
+          <span id="railStatusText">正在检查</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="stage">
+      <header class="stage-header">
+        <div class="breadcrumb">
+          <strong>科诚编辑工作台</strong>
+          <span>EDITORIAL OPERATIONS</span>
+          <em id="currentLocation">工作台</em>
+        </div>
+        <div class="header-actions">
+          <span class="ai-compact" id="aiCompact">AI 配置检查中</span>
+          <button class="button secondary compact" id="refreshButton" type="button">刷新状态</button>
+          <button class="button primary compact" id="headerSettingsButton" type="button">设置</button>
+        </div>
+      </header>
+
+      <main class="stage-main">
+        <section class="view active" id="homeView" aria-labelledby="homeTitle">
+          <div class="home-heading">
+            <div>
+              <p class="section-kicker">统一编辑流程</p>
+              <h1 id="homeTitle">让每一篇稿件，都沿着清晰的路径抵达出版。</h1>
+              <p>从数据整理、伦理审查到引用核验，关键任务、风险提示和系统状态在同一视野中完成交接。</p>
+            </div>
+            <div class="today-panel">
+              <span id="todayDate"></span>
+              <strong id="readinessText">正在读取系统状态</strong>
+            </div>
+          </div>
+
+          <div class="metrics-strip" aria-label="数据库概览">
+            <div class="metric"><span>标准稿件</span><strong id="metricManuscripts">--</strong><small>稿件数据库总量</small></div>
+            <div class="metric"><span>作者记录</span><strong id="metricAuthors">--</strong><small>关联作者身份数据</small></div>
+            <div class="metric"><span>覆盖编辑部</span><strong id="metricJournals">--</strong><small>当前接入工作区</small></div>
+            <div class="metric warning"><span>待处理提示</span><strong id="metricWarnings">--</strong><small>建议优先核对异常项</small></div>
+          </div>
+
+          <div class="home-grid">
+            <section class="workflow-panel" aria-labelledby="workflowTitle">
+              <div class="panel-heading">
+                <div>
+                  <h2 id="workflowTitle">编辑流程</h2>
+                  <p>按实际工作意图进入，不必记忆三个项目的地址和端口。</p>
+                </div>
+              </div>
+
+              <article class="workflow-row data-row">
+                <div class="workflow-index" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none"><rect x="4.5" y="4.5" width="23" height="23" rx="7" fill="currentColor" opacity=".09"/><path d="M9 22.5v-6M16 22.5v-12M23 22.5v-8.5M7.5 25h17"/><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="23" cy="11.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+                </div>
+                <div class="workflow-copy">
+                  <div class="workflow-title-line">
+                    <h3>编辑部数据汇总</h3>
+                    <span class="module-state" data-module-state="data">检查中</span>
+                  </div>
+                  <p>查询稿件数据库，浏览标准字段，或从已复制的 Excel 数据重新生成汇总库。</p>
+                  <div class="workflow-actions">
+                    <button class="text-action" type="button" data-open-module="data" data-module-action="ask">AI 查数</button>
+                    <button class="text-action" type="button" data-open-module="data" data-module-action="viewer">浏览数据库</button>
+                    <button class="text-action danger-aware" id="rebuildButton" type="button">重建数据库</button>
+                  </div>
+                </div>
+                <button class="enter-button" type="button" data-open-module="data" aria-label="进入编辑部数据汇总"><svg viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6"/></svg></button>
+              </article>
+
+              <article class="workflow-row">
+                <div class="workflow-index" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none"><path d="M16 3.8 25.5 8v6.7c0 6.3-3.7 10.9-9.5 13.5-5.8-2.6-9.5-7.2-9.5-13.5V8L16 3.8Z" fill="currentColor" opacity=".1" stroke="none"/><path d="M16 4.8 24.5 8.6v6c0 5.6-3.3 9.7-8.5 12.1-5.2-2.4-8.5-6.5-8.5-12.1v-6L16 4.8Z"/><path d="m11.5 15.6 3 3 6.5-7"/></svg>
+                </div>
+                <div class="workflow-copy">
+                  <div class="workflow-title-line">
+                    <h3>稿件伦理审查</h3>
+                    <span class="module-state" data-module-state="ethics">检查中</span>
+                  </div>
+                  <p>按稿件号抓取或直接上传 PDF、Word，批量识别 Ethical Statement 风险并导出报告。</p>
+                  <div class="workflow-actions">
+                    <button class="text-action" type="button" data-open-module="ethics">新建审查</button>
+                  </div>
+                </div>
+                <button class="enter-button" type="button" data-open-module="ethics" aria-label="进入稿件伦理审查"><svg viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6"/></svg></button>
+              </article>
+
+              <article class="workflow-row">
+                <div class="workflow-index" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" fill="none"><path d="M7 4.5h13l5 5v18H7z" fill="currentColor" opacity=".08" stroke="none"/><path d="M7 4.5h13l5 5v18H7zM20 4.5v5h5M11 14.5h10M11 22.5h6"/><path d="M11 18.7c0-1.5.7-2.4 2.1-2.7v1.4c-.5.2-.8.6-.8 1.2h1.2v2.1H11v-2Zm5 0c0-1.5.7-2.4 2.1-2.7v1.4c-.5.2-.8.6-.8 1.2h1.2v2.1H16v-2Z" fill="currentColor" stroke="none"/></svg>
+                </div>
+                <div class="workflow-copy">
+                  <div class="workflow-title-line">
+                    <h3>稿件引用检查</h3>
+                    <span class="module-state" data-module-state="citation">检查中</span>
+                  </div>
+                  <p>解析参考文献，复核近五年引用、非学术来源和作者重复情况，支持 AI 辅助判断。</p>
+                  <div class="workflow-actions">
+                    <button class="text-action" type="button" data-open-module="citation">开始检查</button>
+                  </div>
+                </div>
+                <button class="enter-button" type="button" data-open-module="citation" aria-label="进入稿件引用检查"><svg viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6"/></svg></button>
+              </article>
+            </section>
+
+            <aside class="side-stack">
+              <section class="status-panel" aria-labelledby="systemTitle">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <h2 id="systemTitle">系统状态</h2>
+                    <p>影响三个模块的关键状态。</p>
+                  </div>
+                </div>
+                <div class="status-list">
+                  <div class="status-item">
+                    <span>AI 服务</span>
+                    <strong id="aiStatus">检查中</strong>
+                    <button type="button" data-open-settings="ai">配置</button>
+                  </div>
+                  <div class="status-item">
+                    <span>汇总数据库</span>
+                    <strong id="databaseStatus">检查中</strong>
+                    <small id="databaseDetail"></small>
+                  </div>
+                  <div class="status-item">
+                    <span>最近重建</span>
+                    <strong id="rebuildStatus">尚未在本次运行中重建</strong>
+                    <small id="rebuildDetail"></small>
+                  </div>
+                </div>
+              </section>
+
+              <section class="principle-panel">
+                <span>集成方式</span>
+                <h2>一个入口，三个独立工作区</h2>
+                <p>每个工具保留成熟业务逻辑，工作台负责统一启动、状态、设置和切换。后续可以逐步抽取共用任务与数据。</p>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view module-view" id="moduleView" aria-labelledby="moduleTitle">
+          <div class="module-toolbar">
+            <button class="back-button" id="backButton" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>工作台</span></button>
+            <div class="module-heading">
+              <span id="moduleEyebrow">工作模块</span>
+              <h1 id="moduleTitle">模块</h1>
+              <p id="moduleDescription"></p>
+            </div>
+            <div class="module-actions">
+              <span class="module-state" id="activeModuleStatus">检查中</span>
+              <button class="button secondary compact" id="reloadModuleButton" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg><span>重新载入</span></button>
+              <button class="button secondary compact" id="openWindowButton" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M13 11l7-7M20 14v6H4V4h6"/></svg><span>独立窗口</span></button>
+            </div>
+          </div>
+          <div class="module-frame-shell" id="moduleFrames" aria-live="polite">
+            <div class="frame-placeholder" id="framePlaceholder">
+              <strong>正在准备工作区</strong>
+              <span>模块首次打开时需要几秒钟。</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog class="settings-dialog" id="settingsDialog">
+    <div class="settings-layout">
+      <aside class="settings-nav">
+        <div>
+          <span>编辑工作台</span>
+          <h2>系统设置</h2>
+        </div>
+        <nav aria-label="设置分类">
+          <button class="settings-tab active" type="button" data-settings-tab="general">常规</button>
+          <button class="settings-tab" type="button" data-settings-tab="ai">AI 服务</button>
+        </nav>
+        <button class="settings-close-side" type="button" data-close-settings>关闭设置</button>
+      </aside>
+
+      <div class="settings-content">
+        <header class="settings-header">
+          <div>
+            <span id="settingsSectionKicker">工作台偏好</span>
+            <h2 id="settingsSectionTitle">常规</h2>
+          </div>
+          <button class="icon-close" type="button" data-close-settings aria-label="关闭设置">关闭</button>
+        </header>
+
+        <section class="settings-section active" data-settings-section="general">
+          <div class="setting-block">
+            <div>
+              <h3>界面主题</h3>
+              <p>主题会同步到统一工作台和当前打开的三个业务模块。</p>
+            </div>
+            <div class="segmented" role="radiogroup" aria-label="界面主题">
+              <button type="button" data-theme-choice="light">浅色</button>
+              <button type="button" data-theme-choice="dark">深色</button>
+              <button type="button" data-theme-choice="auto">跟随系统</button>
+            </div>
+          </div>
+          <div class="setting-block path-block">
+            <div>
+              <h3>运行方式</h3>
+              <p>工作台会启动当前工作文件夹中的三个副本，不会调用原项目目录。</p>
+            </div>
+            <code>./modules</code>
+          </div>
+        </section>
+
+        <section class="settings-section" data-settings-section="ai">
+          <div class="settings-notice">
+            <strong>三个模块共用此配置</strong>
+            <p>API Key 保存在本机 <code>.local/settings.json</code>，工作台页面只显示掩码。</p>
+          </div>
+          <form id="aiSettingsForm" novalidate>
+            <div class="field">
+              <label for="apiKeyInput">API Key <span id="apiKeyMasked">未配置</span></label>
+              <div class="secret-field">
+                <input id="apiKeyInput" type="password" autocomplete="new-password" placeholder="留空表示保留现有 Key">
+                <button id="toggleSecretButton" type="button">显示</button>
+              </div>
+              <small>保存新 Key 时会先执行一次最小连接测试。</small>
+            </div>
+            <div class="field">
+              <label for="apiUrlInput">Chat Completions 地址</label>
+              <input id="apiUrlInput" type="url" spellcheck="false" placeholder="https://api.deepseek.com/v1/chat/completions">
+            </div>
+            <div class="field">
+              <label for="modelInput">模型</label>
+              <input id="modelInput" type="text" spellcheck="false" placeholder="deepseek-chat">
+            </div>
+            <div class="settings-form-status" id="settingsFormStatus" role="status"></div>
+            <div class="settings-actions">
+              <button class="button secondary" id="testConnectionButton" type="button">仅测试连接</button>
+              <button class="button primary" id="saveAiButton" type="submit">保存并测试</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='workbench.js') }}"></script>
+</body>
+</html>

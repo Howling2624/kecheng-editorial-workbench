@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学术稿件伦理审查工具</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%231d6b4f'/%3E%3Cpath d='M18 16h28v32H18z' fill='%23fbfaf4'/%3E%3Cpath d='M23 25h18M23 32h18M23 39h12' stroke='%2317211d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --ink: #e9fff8;
+            --muted: #83a79e;
+            --line: rgba(88, 255, 221, 0.22);
+            --paper: #06100e;
+            --panel: rgba(8, 25, 23, 0.86);
+            --field: rgba(3, 15, 13, 0.82);
+            --green: #36e7ba;
+            --green-dark: #0da982;
+            --amber: #ffc85b;
+            --red: #ff6b70;
+            --blue: #6bbcff;
+            --shadow: 0 22px 64px rgba(0, 0, 0, 0.42), 0 0 34px rgba(54, 231, 186, 0.08);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        * {
+            transition:
+                background-color 260ms ease,
+                background 260ms ease,
+                border-color 260ms ease,
+                color 220ms ease,
+                box-shadow 260ms ease;
+        }
+
+        html {
+            min-width: 320px;
+            background: var(--paper);
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            font-family: "Bahnschrift", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+            background-color: var(--paper);
+            background:
+                linear-gradient(90deg, rgba(70, 255, 218, 0.07) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(70, 255, 218, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 10% 12%, rgba(54, 231, 186, 0.15), transparent 34%),
+                radial-gradient(circle at 84% 18%, rgba(255, 200, 91, 0.12), transparent 28%),
+                var(--paper);
+            background-size: 30px 30px, 30px 30px, auto, auto, auto;
+            background-color: var(--paper);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(120deg, rgba(54, 231, 186, 0.12), transparent 26%, rgba(107, 188, 255, 0.08) 54%, transparent 78%),
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0, rgba(255, 255, 255, 0.025) 1px, transparent 1px, transparent 4px);
+            opacity: 0.72;
+            mix-blend-mode: screen;
+        }
+
+        button,
+        input,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+        }
+
+        .shell {
+            position: relative;
+            width: min(1440px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 34px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 10px 0 24px;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            text-shadow: 0 0 18px rgba(54, 231, 186, 0.62);
+        }
+
+        h1 {
+            margin: 0;
+            font-family: "Bahnschrift", "Microsoft YaHei", sans-serif;
+            font-size: clamp(30px, 3.7vw, 50px);
+            line-height: 1.16;
+            letter-spacing: 0;
+            text-shadow: 0 0 26px rgba(54, 231, 186, 0.18);
+        }
+
+        .subtitle {
+            max-width: 620px;
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .download-quick {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 0 0 auto;
+        }
+
+        .toolbar-status {
+            min-width: 120px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            text-align: right;
+        }
+
+        .theme-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 42px;
+            border: 1px solid rgba(88, 255, 221, 0.28);
+            border-radius: 999px;
+            padding: 5px 10px 5px 6px;
+            cursor: pointer;
+            background: rgba(5, 18, 16, 0.72);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .theme-toggle input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .toggle-track {
+            position: relative;
+            width: 58px;
+            height: 30px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #071713, #0b2d28);
+            box-shadow: inset 0 0 0 1px rgba(88, 255, 221, 0.26), inset 0 0 18px rgba(54, 231, 186, 0.08);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #35f0c0, #6bbcff);
+            box-shadow: 0 0 14px rgba(54, 231, 186, 0.7);
+            transform: translateX(0);
+            transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), background 260ms ease, box-shadow 260ms ease;
+        }
+
+        .theme-toggle input:checked + .toggle-track .toggle-thumb {
+            transform: translateX(28px);
+            background: linear-gradient(135deg, #ffffff, #b8f5ff);
+            box-shadow: 0 0 16px rgba(107, 188, 255, 0.56);
+        }
+
+        .toggle-text {
+            min-width: 38px;
+            text-align: left;
+            letter-spacing: 0.02em;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(10, 30, 27, 0.92), rgba(5, 18, 16, 0.88));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            background:
+                linear-gradient(90deg, rgba(54, 231, 186, 0.24), transparent 24%, transparent 76%, rgba(107, 188, 255, 0.16)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 42%);
+            opacity: 0.55;
+        }
+
+        .panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .command-panel {
+            position: sticky;
+            top: 20px;
+            overflow: hidden;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(5, 19, 17, 0.78);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .panel-note {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .form-body {
+            padding: 20px;
+        }
+
+        .mode-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(2, 12, 11, 0.75);
+        }
+
+        .mode-tab {
+            min-height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(180deg, rgba(54, 231, 186, 0.24), rgba(54, 231, 186, 0.08));
+            color: var(--ink);
+            box-shadow: inset 0 0 0 1px rgba(54, 231, 186, 0.35), 0 0 22px rgba(54, 231, 186, 0.14);
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: #d9fff5;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid rgba(88, 255, 221, 0.24);
+            border-radius: 6px;
+            outline: 0;
+            background: var(--field);
+            color: var(--ink);
+            transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        input {
+            height: 44px;
+            padding: 0 13px;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(191, 251, 238, 0.45);
+        }
+
+        textarea {
+            min-height: 210px;
+            padding: 13px;
+            resize: vertical;
+            line-height: 1.6;
+            font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+        }
+
+        .file-drop {
+            position: relative;
+            display: grid;
+            place-items: center;
+            justify-content: center;
+            align-content: center;
+            min-height: 190px;
+            border: 1px dashed rgba(88, 255, 221, 0.45);
+            border-radius: 8px;
+            background: var(--field);
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 0;
+            transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+        }
+
+        .file-drop:hover,
+        .file-drop.dragging {
+            border-color: var(--green);
+            background: rgba(8, 31, 27, 0.9);
+            box-shadow: 0 0 0 3px rgba(54, 231, 186, 0.12), inset 0 0 36px rgba(54, 231, 186, 0.06);
+        }
+
+        .file-drop input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-drop strong {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 15px;
+            color: var(--ink);
+        }
+
+        .file-drop span {
+            display: block;
+            max-width: 260px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .file-list {
+            margin: 10px 0 0;
+            padding: 0;
+            list-style: none;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .file-list li {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--green);
+            background: rgba(6, 24, 21, 0.95);
+            box-shadow: 0 0 0 3px rgba(54, 231, 186, 0.13), 0 0 24px rgba(54, 231, 186, 0.12);
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 42px;
+            border-radius: 6px;
+            padding: 0 15px;
+            cursor: pointer;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, border-color 150ms ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.62;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #23d9ad, #6bbcff);
+            color: #04100e;
+            box-shadow: 0 0 28px rgba(54, 231, 186, 0.24);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5af4cf, #94d2ff);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(88, 255, 221, 0.28);
+            background: linear-gradient(180deg, rgba(14, 43, 39, 0.88), rgba(5, 18, 16, 0.72));
+            color: var(--ink);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 10px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(88, 255, 221, 0.52);
+            background: linear-gradient(180deg, rgba(21, 61, 55, 0.95), rgba(8, 28, 25, 0.82));
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 14px 30px rgba(0, 0, 0, 0.25), 0 0 18px rgba(54, 231, 186, 0.08);
+        }
+
+        .btn-compact {
+            min-height: 38px;
+            padding: 0 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        .settings-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .settings-status {
+            display: block;
+            margin-top: 9px;
+            min-height: 18px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .settings-dialog {
+            width: min(460px, calc(100vw - 28px));
+            border: 1px solid rgba(88, 255, 221, 0.28);
+            border-radius: 8px;
+            padding: 0;
+            background: linear-gradient(180deg, rgba(8, 25, 23, 0.98), rgba(3, 13, 12, 0.98));
+            color: var(--ink);
+            box-shadow: 0 26px 80px rgba(0, 0, 0, 0.58), 0 0 34px rgba(54, 231, 186, 0.12);
+        }
+
+        .settings-dialog::backdrop {
+            background: rgba(1, 8, 7, 0.72);
+            backdrop-filter: blur(5px);
+        }
+
+        .dialog-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .dialog-body {
+            padding: 18px;
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .main-stack {
+            display: grid;
+            gap: 18px;
+            min-width: 0;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            padding: 18px;
+        }
+
+        .stat {
+            min-height: 102px;
+            border: 1px solid rgba(88, 255, 221, 0.22);
+            border-radius: 7px;
+            padding: 14px;
+            background: linear-gradient(180deg, rgba(10, 34, 31, 0.72), rgba(2, 14, 12, 0.58));
+            box-shadow: inset 0 0 24px rgba(54, 231, 186, 0.035);
+        }
+
+        .stat strong {
+            display: block;
+            min-height: 34px;
+            font-family: "Bahnschrift", "Microsoft YaHei", sans-serif;
+            font-size: 30px;
+            line-height: 1;
+            color: var(--green);
+            text-shadow: 0 0 18px rgba(54, 231, 186, 0.38);
+        }
+
+        .stat span {
+            display: block;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .meter {
+            height: 8px;
+            margin: 0 18px 18px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(2, 12, 11, 0.86);
+            border: 1px solid rgba(88, 255, 221, 0.12);
+        }
+
+        .meter-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--green), var(--blue), var(--amber));
+            transition: width 300ms ease;
+            box-shadow: 0 0 18px rgba(54, 231, 186, 0.42);
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .log-box {
+            height: 132px;
+            overflow: auto;
+            padding: 10px 14px;
+            background: rgba(2, 12, 11, 0.72);
+            color: #bffbee;
+            border-top: 1px solid var(--line);
+            border-radius: 0 0 var(--radius) var(--radius);
+            font: 12px/1.55 "Cascadia Mono", Consolas, "Courier New", monospace;
+        }
+
+        .log {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(88, 255, 221, 0.11);
+            word-break: break-word;
+        }
+
+        .log.success {
+            color: var(--green-dark);
+        }
+
+        .log.error {
+            color: var(--red);
+        }
+
+        .log.processing {
+            color: var(--amber);
+        }
+
+        .empty-state {
+            padding: 30px 18px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .results-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(2, 12, 11, 0.22);
+        }
+
+        .search {
+            max-width: 320px;
+            height: 38px;
+            background: rgba(2, 12, 11, 0.72);
+        }
+
+        .table-wrap {
+            overflow-y: auto;
+            overflow-x: hidden;
+            max-height: 520px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid rgba(88, 255, 221, 0.13);
+            padding: 10px 8px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 12px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: rgba(5, 22, 20, 0.96);
+            color: #bffbee;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        th:nth-child(1),
+        td:nth-child(1) {
+            width: 18%;
+        }
+
+        th:nth-child(2),
+        td:nth-child(2),
+        th:nth-child(3),
+        td:nth-child(3) {
+            width: 9%;
+        }
+
+        th:nth-child(4),
+        td:nth-child(4),
+        th:nth-child(5),
+        td:nth-child(5) {
+            width: 11%;
+        }
+
+        th:nth-child(6),
+        td:nth-child(6) {
+            width: 26%;
+        }
+
+        th:nth-child(7),
+        td:nth-child(7),
+        th:nth-child(8),
+        td:nth-child(8) {
+            width: 8%;
+            text-align: center;
+        }
+
+        tbody tr {
+            background: rgba(7, 22, 20, 0.64);
+        }
+
+        tbody tr:hover {
+            background: rgba(19, 56, 50, 0.68);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            min-height: 24px;
+            border-radius: 999px;
+            padding: 3px 7px;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .badge.ok {
+            background: rgba(54, 231, 186, 0.18);
+            color: #92ffe3;
+            box-shadow: inset 0 0 0 1px rgba(54, 231, 186, 0.25);
+        }
+
+        .badge.warn {
+            background: rgba(255, 200, 91, 0.18);
+            color: #ffe1a0;
+            box-shadow: inset 0 0 0 1px rgba(255, 200, 91, 0.25);
+        }
+
+        .badge.err {
+            background: rgba(255, 107, 112, 0.18);
+            color: #ffafb2;
+            box-shadow: inset 0 0 0 1px rgba(255, 107, 112, 0.28);
+        }
+
+        .badge.neutral {
+            background: rgba(131, 167, 158, 0.14);
+            color: #b8d2ca;
+            box-shadow: inset 0 0 0 1px rgba(131, 167, 158, 0.2);
+        }
+
+        .link {
+            color: var(--blue);
+            font-weight: 800;
+            text-decoration: none;
+            text-shadow: 0 0 14px rgba(107, 188, 255, 0.2);
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        ::selection {
+            background: rgba(54, 231, 186, 0.32);
+            color: var(--ink);
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(2, 12, 11, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(54, 231, 186, 0.34);
+            border: 2px solid rgba(2, 12, 11, 0.8);
+            border-radius: 999px;
+        }
+
+        body.light {
+            --ink: #10231f;
+            --muted: #5e7770;
+            --line: rgba(27, 143, 128, 0.24);
+            --paper: #edf8f6;
+            --panel: rgba(255, 255, 255, 0.88);
+            --field: rgba(255, 255, 255, 0.84);
+            --green: #0d9f86;
+            --green-dark: #08735f;
+            --amber: #b97610;
+            --red: #c53941;
+            --blue: #217cbd;
+            --shadow: 0 18px 48px rgba(24, 84, 78, 0.14), 0 0 28px rgba(33, 124, 189, 0.08);
+            background-color: var(--paper);
+            background:
+                linear-gradient(90deg, rgba(13, 159, 134, 0.08) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(13, 159, 134, 0.06) 1px, transparent 1px),
+                radial-gradient(circle at 9% 12%, rgba(54, 231, 186, 0.22), transparent 32%),
+                radial-gradient(circle at 86% 16%, rgba(107, 188, 255, 0.20), transparent 30%),
+                var(--paper);
+            background-size: 30px 30px, 30px 30px, auto, auto, auto;
+            background-color: var(--paper);
+        }
+
+        body.light::before {
+            background:
+                linear-gradient(120deg, rgba(54, 231, 186, 0.18), transparent 28%, rgba(107, 188, 255, 0.12) 58%, transparent 80%),
+                repeating-linear-gradient(0deg, rgba(10, 60, 54, 0.028) 0, rgba(10, 60, 54, 0.028) 1px, transparent 1px, transparent 4px);
+            opacity: 0.7;
+            mix-blend-mode: multiply;
+        }
+
+        body.light .panel {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(232, 250, 247, 0.86));
+            border-color: rgba(27, 143, 128, 0.24);
+        }
+
+        body.light .panel::before {
+            background:
+                linear-gradient(90deg, rgba(13, 159, 134, 0.16), transparent 28%, transparent 74%, rgba(33, 124, 189, 0.13)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.62), transparent 48%);
+            opacity: 0.72;
+        }
+
+        body.light .panel-head,
+        body.light .results-toolbar {
+            background: rgba(240, 251, 248, 0.82);
+        }
+
+        body.light .mode-tabs,
+        body.light .theme-toggle,
+        body.light .btn-secondary {
+            background: rgba(255, 255, 255, 0.78);
+            border-color: rgba(27, 143, 128, 0.25);
+        }
+
+        body.light .mode-tab.active {
+            background: linear-gradient(180deg, rgba(54, 231, 186, 0.18), rgba(255, 255, 255, 0.86));
+            color: #075946;
+            box-shadow: inset 0 0 0 1px rgba(13, 159, 134, 0.22), 0 10px 24px rgba(13, 159, 134, 0.12);
+        }
+
+        body.light label,
+        body.light .file-drop strong {
+            color: #10231f;
+        }
+
+        body.light input,
+        body.light textarea,
+        body.light .search,
+        body.light .file-drop {
+            background: rgba(255, 255, 255, 0.86);
+            border-color: rgba(27, 143, 128, 0.26);
+            color: var(--ink);
+        }
+
+        body.light input::placeholder,
+        body.light textarea::placeholder {
+            color: rgba(16, 35, 31, 0.42);
+        }
+
+        body.light .stat {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(232, 250, 247, 0.72));
+            border-color: rgba(27, 143, 128, 0.23);
+        }
+
+        body.light .meter,
+        body.light .log-box {
+            background: rgba(246, 253, 251, 0.82);
+            color: #1c3a34;
+        }
+
+        body.light th {
+            background: rgba(223, 247, 243, 0.96);
+            color: #183f38;
+        }
+
+        body.light tbody tr {
+            background: rgba(255, 255, 255, 0.74);
+        }
+
+        body.light tbody tr:hover {
+            background: rgba(226, 250, 246, 0.92);
+        }
+
+        body.light .badge.ok {
+            background: rgba(13, 159, 134, 0.13);
+            color: #08735f;
+        }
+
+        body.light .badge.warn {
+            background: rgba(255, 200, 91, 0.24);
+            color: #7b4b0c;
+        }
+
+        body.light .badge.err {
+            background: rgba(255, 107, 112, 0.16);
+            color: #9f252c;
+        }
+
+        body.light .badge.neutral {
+            background: rgba(94, 119, 112, 0.14);
+            color: #52645f;
+        }
+
+        body.light .toggle-track {
+            background: linear-gradient(135deg, #dff8f3, #ffffff);
+            box-shadow: inset 0 0 0 1px rgba(27, 143, 128, 0.24);
+        }
+
+        body.light ::-webkit-scrollbar-track {
+            background: rgba(234, 248, 245, 0.95);
+        }
+
+        body.light ::-webkit-scrollbar-thumb {
+            background: rgba(13, 159, 134, 0.32);
+            border-color: rgba(234, 248, 245, 0.95);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 1080px) {
+            .workspace,
+            .split {
+                grid-template-columns: 1fr;
+            }
+
+            .command-panel {
+                position: static;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .shell {
+                width: min(100% - 24px, 1440px);
+                padding-top: 18px;
+            }
+
+            .topbar {
+                display: block;
+            }
+
+            .download-quick {
+                display: grid;
+                grid-template-columns: 1fr;
+                margin-top: 16px;
+            }
+
+            .download-quick .btn,
+            .theme-toggle {
+                width: 100%;
+            }
+
+            .theme-toggle {
+                justify-content: space-between;
+            }
+
+            .overview-grid,
+            .actions,
+            .settings-row {
+                grid-template-columns: 1fr;
+            }
+
+            .results-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .search {
+                max-width: none;
+            }
+        }
+    </style>
+    <script>if (window.self !== window.top) document.documentElement.classList.add("embedded");</script>
+    <style>
+        .embedded .topbar { display: none; }
+        .embedded .shell { width: 100%; max-width: none; padding: 18px; }
+        .embedded .settings-dialog { display: none; }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Ethics Review Console</p>
+                <h1>学术稿件伦理审查工具</h1>
+                <p class="subtitle">批量检查 OJS 文章页面与 PDF 中的 Ethical Statement，自动下载原文、生成分析报告，并汇总冲突风险。</p>
+            </div>
+            <div class="download-quick">
+                <span class="toolbar-status" id="apiKeyStatus">Checking...</span>
+                <button class="btn btn-secondary btn-compact" type="button" onclick="openApiDialog()">配置 API Key</button>
+                <label class="theme-toggle" title="切换明暗主题">
+                    <input id="themeSwitch" type="checkbox" onchange="toggleTheme(this.checked)">
+                    <span class="toggle-track" aria-hidden="true">
+                        <span class="toggle-thumb"></span>
+                    </span>
+                    <span class="toggle-text" id="themeText">Dark</span>
+                </label>
+                <button class="btn btn-secondary btn-compact" type="button" onclick="downloadLatest()">最新 CSV</button>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <section class="panel command-panel">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">新建审查任务</h2>
+                        <p class="panel-note">可按稿件号批量检查，也可上传本地 PDF/Word 文件。</p>
+                    </div>
+                </div>
+                <div class="form-body">
+                    <div class="mode-tabs" role="tablist" aria-label="审查模式">
+                        <button class="mode-tab active" id="articleModeBtn" type="button" onclick="setMode('article')">稿件号检查</button>
+                        <button class="mode-tab" id="uploadModeBtn" type="button" onclick="setMode('upload')">上传文件检查</button>
+                    </div>
+
+                    <div id="articleForm">
+                        <div class="field">
+                        <label for="journal">
+                            编辑部缩写
+                            <span class="hint">如 JOURNAL-A / JOURNAL-B</span>
+                        </label>
+                        <input id="journal" type="text" autocomplete="off" spellcheck="false" placeholder="输入期刊或编辑部缩写">
+                        </div>
+                        <div class="field">
+                            <label for="articleIds">
+                                稿件号列表
+                                <span class="hint" id="articleCount">0 篇</span>
+                            </label>
+                            <textarea id="articleIds" spellcheck="false" placeholder="每行一个稿件号&#10;1234&#10;1235"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="uploadForm" class="hidden">
+                        <div class="field">
+                            <label for="fileInput">
+                                本地文件
+                                <span class="hint" id="fileCount">0 个</span>
+                            </label>
+                            <label class="file-drop" id="fileDrop" for="fileInput">
+                                <input id="fileInput" type="file" multiple accept=".pdf,.doc,.docx" onchange="updateFileList()">
+                                <span>
+                                    <strong>点击选择或拖入文件</strong>
+                                    支持 PDF、DOCX、DOC，可一次选择多个文件。
+                                </span>
+                            </label>
+                            <ul class="file-list" id="fileList"></ul>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-primary" id="startBtn" type="button" onclick="startProcess()">开始处理</button>
+                        <button class="btn btn-secondary" type="button" onclick="downloadLatest()">下载 CSV</button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="main-stack">
+                <section class="panel" id="progressPanel">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">运行概览</h2>
+                            <p class="panel-note" id="statusHint">等待提交任务，或查看下方历史结果。</p>
+                        </div>
+                    </div>
+                    <div class="overview-grid">
+                        <div class="stat"><strong id="statTotal">0</strong><span>任务总数</span></div>
+                        <div class="stat"><strong id="statDone">0</strong><span>已完成</span></div>
+                        <div class="stat"><strong id="statConflict">0</strong><span>冲突风险</span></div>
+                        <div class="stat"><strong id="statStatus">待命</strong><span>任务状态</span></div>
+                    </div>
+                    <div class="meter" aria-hidden="true"><div class="meter-bar" id="meterBar"></div></div>
+                </section>
+
+                <div class="split">
+                    <section class="panel" id="resultsPanel">
+                        <div class="panel-head">
+                            <div>
+                                <h2 class="panel-title">检测结果</h2>
+                                <p class="panel-note" id="resultHint">暂无结果。新任务完成一篇后会立即显示。</p>
+                            </div>
+                        </div>
+                        <div class="results-toolbar">
+                            <input class="search" id="resultSearch" type="search" placeholder="搜索稿件号、原因或状态" oninput="displayResults(allResults)">
+                            <button class="btn btn-secondary" type="button" onclick="downloadLatest()">导出汇总</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>稿件号</th>
+                                        <th>网页 ES</th>
+                                        <th>PDF ES</th>
+                                        <th>伦理相关</th>
+                                        <th>冲突</th>
+                                        <th>原因</th>
+                                        <th>报告</th>
+                                        <th>PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsBody">
+                                    <tr><td colspan="8"><div class="empty-state">还没有检测结果。</div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h2 class="panel-title">处理日志</h2>
+                                <p class="panel-note">下载、分析和错误信息会在这里实时追加。</p>
+                            </div>
+                        </div>
+                        <div class="log-box" id="progressBox">
+                            <div class="empty-state">还没有运行日志。</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <dialog class="settings-dialog" id="apiDialog">
+        <div class="dialog-head">
+            <div>
+                <h2 class="panel-title">配置 DeepSeek API Key</h2>
+                <p class="panel-note">保存前会先测试 Key 是否可用。</p>
+            </div>
+            <button class="btn btn-secondary btn-compact" type="button" onclick="closeApiDialog()">关闭</button>
+        </div>
+        <div class="dialog-body">
+            <label for="apiKeyInput">
+                API Key
+                <span class="hint" id="apiKeyDialogState">未保存</span>
+            </label>
+            <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+            <span class="settings-status" id="apiKeyDialogStatus">粘贴 Key 后点击保存，系统会先发起一次测试。</span>
+            <div class="dialog-actions">
+                <button class="btn btn-secondary" type="button" onclick="closeApiDialog()">取消</button>
+                <button class="btn btn-primary" id="saveApiKeyBtn" type="button" onclick="saveApiKey()">测试并保存</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        let activeJobId = null;
+        let pollTimer = null;
+        let renderedLogCount = 0;
+        let allResults = [];
+        let currentMode = "article";
+
+        function setApiStatus(text) {
+            const toolbarStatus = document.getElementById("apiKeyStatus");
+            const dialogState = document.getElementById("apiKeyDialogState");
+            if (toolbarStatus) toolbarStatus.textContent = text;
+            if (dialogState) dialogState.textContent = text;
+        }
+
+        function setApiDialogStatus(text) {
+            const dialogStatus = document.getElementById("apiKeyDialogStatus");
+            if (dialogStatus) dialogStatus.textContent = text;
+        }
+
+        function openApiDialog() {
+            const dialog = document.getElementById("apiDialog");
+            if (dialog && typeof dialog.showModal === "function") {
+                dialog.showModal();
+            } else if (dialog) {
+                dialog.setAttribute("open", "open");
+            }
+            setTimeout(() => document.getElementById("apiKeyInput")?.focus(), 0);
+        }
+
+        function closeApiDialog() {
+            const dialog = document.getElementById("apiDialog");
+            if (dialog && typeof dialog.close === "function") {
+                dialog.close();
+            } else if (dialog) {
+                dialog.removeAttribute("open");
+            }
+        }
+
+        async function loadApiSettings() {
+            try {
+                const response = await fetch("api/settings");
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || "Failed to load settings");
+                setApiStatus(data.configured
+                    ? `已配置：${data.apiKeyMasked}`
+                    : "未配置 API Key");
+            } catch (error) {
+                setApiStatus("配置不可用");
+                setApiDialogStatus(error.message);
+            }
+        }
+
+        async function saveApiKey() {
+            const input = document.getElementById("apiKeyInput");
+            const button = document.getElementById("saveApiKeyBtn");
+            const apiKey = input.value.trim();
+            if (!apiKey) {
+                alert("请先输入 DeepSeek API Key。");
+                return;
+            }
+            button.disabled = true;
+            button.textContent = "测试中...";
+            setApiStatus("正在测试 API Key...");
+            setApiDialogStatus("正在向 DeepSeek 发送一次轻量测试请求...");
+            try {
+                const response = await fetch("api/settings", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({apiKey})
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || "保存 API Key 失败");
+                input.value = "";
+                setApiStatus(`已保存：${data.apiKeyMasked}`);
+                setApiDialogStatus("测试通过，Key 已保存到本地配置。");
+                setTimeout(closeApiDialog, 700);
+            } catch (error) {
+                setApiStatus("API Key 未保存");
+                setApiDialogStatus(`保存失败：${error.message}`);
+            } finally {
+                button.disabled = false;
+                button.textContent = "测试并保存";
+            }
+        }
+
+        const mojibakeMap = new Map([
+            ["鍐茬獊", "冲突"],
+            ["鏃犲啿绐?", "无冲突"],
+            ["妫€娴嬩腑", "检测中"],
+            ["绛夊緟涓?", "等待中"],
+            ["鏈?", "有"],
+            ["鏃?", "无"],
+            ["娑夊強", "涉及"],
+            ["涓嶆秹鍙?", "不涉及"],
+            ["鏃犳硶鍒ゆ柇", "无法判断"],
+            ["鏃犳硶鍒嗘瀽", "无法分析"],
+            ["涓嬭浇澶辫触", "下载失败"],
+            ["涓嬭浇閿欒", "下载错误"],
+            ["鍒嗘瀽閿欒", "分析错误"],
+            ["鍒嗘瀽澶辫触", "分析失败"],
+            ["PDF涓嬭浇鎴愬姛", "PDF 下载成功"],
+            ["queued", "排队中"],
+            ["running", "运行中"],
+            ["finished", "已完成"],
+            ["failed", "失败"]
+        ]);
+
+        function displayText(value) {
+            if (value === null || value === undefined || value === "") return "-";
+            let text = String(value);
+            mojibakeMap.forEach((normal, broken) => {
+                text = text.replaceAll(broken, normal);
+            });
+            return text;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function badge(value) {
+            const text = displayText(value);
+            let cls = "neutral";
+            if (["冲突", "下载失败", "下载错误", "分析错误", "分析失败", "无法判断", "无法分析", "检查失败"].some(k => text.includes(k))) {
+                cls = "err";
+            } else if (["涉及", "有", "检测中", "等待中", "排队中", "运行中"].some(k => text.includes(k))) {
+                cls = "warn";
+            } else if (["无冲突", "不涉及", "无", "已完成"].some(k => text.includes(k))) {
+                cls = "ok";
+            }
+            return `<span class="badge ${cls}">${escapeHtml(text)}</span>`;
+        }
+
+        function getArticleLines() {
+            return document.getElementById("articleIds").value
+                .split(/\r?\n/)
+                .map(item => item.trim())
+                .filter(Boolean);
+        }
+
+        function updateArticleCount() {
+            document.getElementById("articleCount").textContent = `${getArticleLines().length} 篇`;
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById("articleModeBtn").classList.toggle("active", mode === "article");
+            document.getElementById("uploadModeBtn").classList.toggle("active", mode === "upload");
+            document.getElementById("articleForm").classList.toggle("hidden", mode !== "article");
+            document.getElementById("uploadForm").classList.toggle("hidden", mode !== "upload");
+            document.getElementById("startBtn").textContent = mode === "article" ? "开始处理" : "上传并检查";
+        }
+
+        function selectedFiles() {
+            return Array.from(document.getElementById("fileInput").files || []);
+        }
+
+        function updateFileList() {
+            const files = selectedFiles();
+            document.getElementById("fileCount").textContent = `${files.length} 个`;
+            const fileList = document.getElementById("fileList");
+            fileList.innerHTML = files
+                .map(file => `<li>${escapeHtml(file.name)} · ${formatFileSize(file.size)}</li>`)
+                .join("");
+        }
+
+        function formatFileSize(size) {
+            if (size < 1024) return `${size} B`;
+            if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+            return `${(size / 1024 / 1024).toFixed(1)} MB`;
+        }
+
+        function addLog(log) {
+            const progressBox = document.getElementById("progressBox");
+            if (progressBox.querySelector(".empty-state")) {
+                progressBox.innerHTML = "";
+            }
+            const div = document.createElement("div");
+            div.className = `log ${log.level || "info"}`;
+            div.textContent = `[${displayText(log.time)}] ${displayText(log.message)}`;
+            progressBox.appendChild(div);
+            progressBox.scrollTop = progressBox.scrollHeight;
+        }
+
+        async function startProcess() {
+            if (currentMode === "upload") {
+                await startUploadProcess();
+                return;
+            }
+
+            const journal = document.getElementById("journal").value.trim();
+            const articleIds = document.getElementById("articleIds").value.trim();
+            if (!journal || !articleIds) {
+                alert("请填写编辑部缩写和稿件号。");
+                return;
+            }
+
+            resetView();
+            const startBtn = document.getElementById("startBtn");
+            startBtn.disabled = true;
+            startBtn.textContent = "任务提交中...";
+
+            try {
+                const response = await fetch("api/process", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({journal, articleIds})
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(displayText(data.error || "任务提交失败"));
+                }
+                activeJobId = data.jobId;
+                document.getElementById("statusHint").textContent = "任务已提交，正在读取处理进度。";
+                pollJob();
+                pollTimer = setInterval(pollJob, 1500);
+            } catch (error) {
+                addLog({time: new Date().toLocaleTimeString(), message: error.message, level: "error"});
+                startBtn.disabled = false;
+                startBtn.textContent = "开始处理";
+                updateStats({total: getArticleLines().length, completed: 0, status: "failed", results: []});
+            }
+        }
+
+        async function startUploadProcess() {
+            const files = selectedFiles();
+            if (!files.length) {
+                alert("请先选择 PDF、DOCX 或 DOC 文件。");
+                return;
+            }
+
+            resetView(files.length);
+            const startBtn = document.getElementById("startBtn");
+            startBtn.disabled = true;
+            startBtn.textContent = "文件上传中...";
+
+            try {
+                const formData = new FormData();
+                files.forEach(file => formData.append("files", file));
+                const response = await fetch("api/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(displayText(data.error || "上传任务提交失败"));
+                }
+                activeJobId = data.jobId;
+                document.getElementById("statusHint").textContent = "文件已上传，正在读取处理进度。";
+                pollJob();
+                pollTimer = setInterval(pollJob, 1500);
+            } catch (error) {
+                addLog({time: new Date().toLocaleTimeString(), message: error.message, level: "error"});
+                startBtn.disabled = false;
+                startBtn.textContent = "上传并检查";
+                updateStats({total: files.length, completed: 0, status: "failed", results: []});
+            }
+        }
+
+        function resetView(totalOverride) {
+            activeJobId = null;
+            renderedLogCount = 0;
+            allResults = [];
+            clearInterval(pollTimer);
+            document.getElementById("progressBox").innerHTML = '<div class="empty-state">任务已创建，等待服务器返回日志。</div>';
+            document.getElementById("resultsBody").innerHTML = '<tr><td colspan="8"><div class="empty-state">本次任务尚未返回结果。</div></td></tr>';
+            document.getElementById("resultHint").textContent = "暂无结果。新任务完成一篇后会立即显示。";
+            const total = Number.isFinite(totalOverride) ? totalOverride : getArticleLines().length;
+            updateStats({total, completed: 0, status: "queued", results: []});
+        }
+
+        async function pollJob() {
+            if (!activeJobId) return;
+            try {
+                const response = await fetch(`api/jobs/${activeJobId}`);
+                const job = await response.json();
+                if (!response.ok || !job.success) {
+                    throw new Error(displayText(job.error || "读取任务状态失败"));
+                }
+                renderJob(job);
+                if (["finished", "failed"].includes(job.status)) {
+                    clearInterval(pollTimer);
+                    const startBtn = document.getElementById("startBtn");
+                    startBtn.disabled = false;
+                    startBtn.textContent = currentMode === "article" ? "开始处理" : "上传并检查";
+                }
+            } catch (error) {
+                clearInterval(pollTimer);
+                addLog({time: new Date().toLocaleTimeString(), message: error.message, level: "error"});
+                const startBtn = document.getElementById("startBtn");
+                startBtn.disabled = false;
+                startBtn.textContent = currentMode === "article" ? "开始处理" : "上传并检查";
+            }
+        }
+
+        function renderJob(job) {
+            updateStats(job);
+            (job.logs || []).slice(renderedLogCount).forEach(addLog);
+            renderedLogCount = (job.logs || []).length;
+            allResults = job.results || [];
+            displayResults(allResults);
+        }
+
+        function updateStats(job) {
+            const total = Number(job.total || 0);
+            const completed = Number(job.completed || 0);
+            const conflicts = (job.results || []).filter(r => displayText(r.hasConflict).includes("冲突") && !displayText(r.hasConflict).includes("无冲突")).length;
+            const progress = total ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+            document.getElementById("statTotal").textContent = total;
+            document.getElementById("statDone").textContent = completed;
+            document.getElementById("statConflict").textContent = conflicts;
+            document.getElementById("statStatus").textContent = statusText(job.status);
+            document.getElementById("meterBar").style.width = `${progress}%`;
+            document.getElementById("statusHint").textContent = total
+                ? `已完成 ${completed} / ${total}，当前状态：${statusText(job.status)}。`
+                : "等待提交任务，或查看下方历史结果。";
+        }
+
+        function statusText(status) {
+            return displayText(status || "待命");
+        }
+
+        function displayResults(results) {
+            const tbody = document.getElementById("resultsBody");
+            const query = document.getElementById("resultSearch").value.trim().toLowerCase();
+            const filtered = (results || []).filter(result => {
+                if (!query) return true;
+                return [
+                    result.articleId,
+                    result.webHasES,
+                    result.pdfHasES,
+                    result.needsEthics,
+                    result.hasConflict,
+                    result.reason
+                ].map(displayText).join(" ").toLowerCase().includes(query);
+            });
+
+            document.getElementById("resultHint").textContent = results.length
+                ? `已载入 ${results.length} 条结果${filtered.length !== results.length ? `，当前显示 ${filtered.length} 条` : ""}。`
+                : "暂无结果。新任务完成一篇后会立即显示。";
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">${results.length ? "没有匹配的结果。" : "还没有检测结果。"}</div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = "";
+            filtered.forEach(result => {
+                const reportLink = result.htmlReport
+                    ? `<a class="link" href="reports/${encodeURIComponent(String(result.htmlReport).split(/[/\\\\]/).pop())}" target="_blank" rel="noopener">查看</a>`
+                    : "-";
+                const pdfLink = result.pdfFile
+                    ? `<a class="link" href="pdfs/${encodeURIComponent(String(result.pdfFile).split(/[/\\\\]/).pop())}" target="_blank" rel="noopener">打开</a>`
+                    : "-";
+                const articleUrl = String(result.url || "");
+                const articleLink = /^https?:\/\//i.test(articleUrl)
+                    ? `<a class="link" href="${escapeHtml(result.url)}" target="_blank" rel="noopener">${escapeHtml(displayText(result.articleId))}</a>`
+                    : escapeHtml(displayText(result.articleId));
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${articleLink}</td>
+                    <td>${badge(result.webHasES)}</td>
+                    <td>${badge(result.pdfHasES)}</td>
+                    <td>${badge(result.needsEthics)}</td>
+                    <td>${badge(result.hasConflict)}</td>
+                    <td>${escapeHtml(displayText(result.reason))}</td>
+                    <td>${reportLink}</td>
+                    <td>${pdfLink}</td>
+                `;
+            });
+        }
+
+        function downloadLatest() {
+            window.location.href = "api/download_results";
+        }
+
+        function applyTheme(theme) {
+            const isLight = theme === "light";
+            document.body.classList.toggle("light", isLight);
+            const switchEl = document.getElementById("themeSwitch");
+            const textEl = document.getElementById("themeText");
+            if (switchEl) switchEl.checked = isLight;
+            if (textEl) textEl.textContent = isLight ? "Light" : "Dark";
+        }
+
+        function toggleTheme(isLight) {
+            const theme = isLight ? "light" : "dark";
+            localStorage.setItem("ethics-ui-theme", theme);
+            applyTheme(theme);
+        }
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            applyTheme(localStorage.getItem("ethics-ui-theme") || "dark");
+            loadApiSettings();
+            updateArticleCount();
+            document.getElementById("articleIds").addEventListener("input", updateArticleCount);
+            const fileDrop = document.getElementById("fileDrop");
+            ["dragenter", "dragover"].forEach(eventName => {
+                fileDrop.addEventListener(eventName, event => {
+                    event.preventDefault();
+                    fileDrop.classList.add("dragging");
+                });
+            });
+            fileDrop.addEventListener("dragleave", event => {
+                event.preventDefault();
+                fileDrop.classList.remove("dragging");
+            });
+            fileDrop.addEventListener("drop", event => {
+                event.preventDefault();
+                fileDrop.classList.remove("dragging");
+                document.getElementById("fileInput").files = event.dataTransfer.files;
+                updateFileList();
+            });
+            try {
+                const response = await fetch("api/history");
+                const history = await response.json();
+                if (Array.isArray(history) && history.length) {
+                    allResults = history;
+                    displayResults(history);
+                    document.getElementById("statusHint").textContent = "已自动载入最近一次 CSV 历史结果。";
+                }
+            } catch {
+                document.getElementById("resultHint").textContent = "历史结果读取失败，但不影响新任务。";
+            }
+        });
+    </script>
+</body>
+</html>

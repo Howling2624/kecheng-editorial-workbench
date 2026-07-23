@@ -1,0 +1,13 @@
+{
+  "deepseek_api_key": "",
+  "deepseek_api_url": "https://api.deepseek.com/v1/chat/completions",
+  "deepseek_model": "deepseek-chat",
+  "work_dir": "work_temp",
+  "ojs_base_url": "",
+  "request_timeout": 15,
+  "download_timeout": 30,
+  "user_agent": "Mozilla/5.0",
+  "host": "127.0.0.1",
+  "port": 5000,
+  "debug": false
+}
