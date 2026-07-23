@@ -22,6 +22,7 @@ from flask import Flask, Response, jsonify, render_template, request
 ROOT = Path(__file__).resolve().parent
 LOCAL_DIR = ROOT / ".local"
 SETTINGS_PATH = LOCAL_DIR / "settings.json"
+PID_PATH = LOCAL_DIR / "editops.pid"
 DATA_ROOT = ROOT / "modules" / "data_summary"
 DATABASE_PATH = DATA_ROOT / "稿件表数据" / "整合结果" / "稿件数据.sqlite"
 DATA_TOOL_DIR = DATA_ROOT / "ai_db_tool"
@@ -101,6 +102,21 @@ def save_shared_settings(settings: dict[str, Any]) -> None:
         encoding="utf-8",
     )
     temporary_path.replace(SETTINGS_PATH)
+
+
+def write_pid_file() -> None:
+    LOCAL_DIR.mkdir(parents=True, exist_ok=True)
+    temporary_path = PID_PATH.with_suffix(".tmp")
+    temporary_path.write_text(str(os.getpid()), encoding="ascii")
+    temporary_path.replace(PID_PATH)
+
+
+def remove_pid_file() -> None:
+    try:
+        if PID_PATH.read_text(encoding="ascii").strip() == str(os.getpid()):
+            PID_PATH.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 def prepare_shared_settings() -> None:
@@ -683,18 +699,21 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    start_modules()
+    write_pid_file()
+    atexit.register(remove_pid_file)
     atexit.register(stop_modules)
-    portal_port = find_available_port(args.port)
-    portal_url = f"http://{args.host}:{portal_port}"
-    print(f"EditOps 已启动：{portal_url}", flush=True)
-    print("关闭此窗口即可停止全部模块。", flush=True)
-    if not args.no_browser and os.environ.get("WORKBENCH_NO_BROWSER") != "1":
-        threading.Thread(target=open_portal_when_ready, args=(portal_url,), daemon=True).start()
     try:
+        start_modules()
+        portal_port = find_available_port(args.port)
+        portal_url = f"http://{args.host}:{portal_port}"
+        print(f"EditOps 已启动：{portal_url}", flush=True)
+        print("退出时请双击“停止 EditOps.bat”。", flush=True)
+        if not args.no_browser and os.environ.get("WORKBENCH_NO_BROWSER") != "1":
+            threading.Thread(target=open_portal_when_ready, args=(portal_url,), daemon=True).start()
         app.run(host=args.host, port=portal_port, debug=False, use_reloader=False, threaded=True)
     finally:
         stop_modules()
+        remove_pid_file()
 
 
 if __name__ == "__main__":
