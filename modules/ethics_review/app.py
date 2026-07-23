@@ -640,11 +640,17 @@ def open_browser_when_ready() -> None:
     threading.Timer(1.0, lambda: webbrowser.open(url)).start()
 
 
+def should_open_browser() -> bool:
+    setting = os.environ.get("APP_OPEN_BROWSER", "").strip().lower()
+    return setting not in {"0", "false", "no", "off"}
+
+
 if __name__ == "__main__":
     print("=" * 50)
     print("学术稿件伦理审查工具已启动")
     print(f"DeepSeek API Key: {'已读取' if CONFIG.deepseek_api_key else '未配置'}")
     print(f"请在浏览器中打开: http://{CONFIG.host}:{CONFIG.port}")
     print("=" * 50)
-    open_browser_when_ready()
+    if should_open_browser():
+        open_browser_when_ready()
     app.run(debug=CONFIG.debug, host=CONFIG.host, port=CONFIG.port)

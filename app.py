@@ -312,6 +312,7 @@ def start_modules() -> None:
         {
             "PYTHONUTF8": "1",
             "PYTHONIOENCODING": "utf-8",
+            "APP_OPEN_BROWSER": "0",
         }
     )
 
