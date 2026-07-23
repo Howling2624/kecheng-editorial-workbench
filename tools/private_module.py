@@ -14,10 +14,11 @@ from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 
-FORMAT_NAME = "editorial-workbench-private-module"
+FORMAT_NAME = "editops-private-module"
+LEGACY_FORMAT_NAMES = {"editorial-workbench-private-module"}
 FORMAT_VERSION = 1
 MANIFEST_NAME = "private-module-manifest.json"
-DEFAULT_BUNDLE_NAME = "editorial-private-config"
+DEFAULT_BUNDLE_NAME = "editops-private-config"
 MAX_MEMBER_SIZE = 2 * 1024 * 1024 * 1024
 
 PRIVATE_DIRECTORIES = (
@@ -183,7 +184,8 @@ def load_manifest(archive: zipfile.ZipFile) -> dict:
         manifest = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("私有配置模块清单损坏。") from exc
-    if manifest.get("format") != FORMAT_NAME or manifest.get("version") != FORMAT_VERSION:
+    supported_formats = {FORMAT_NAME, *LEGACY_FORMAT_NAMES}
+    if manifest.get("format") not in supported_formats or manifest.get("version") != FORMAT_VERSION:
         raise ValueError("私有配置模块格式或版本不受支持。")
     if not isinstance(manifest.get("files"), list):
         raise ValueError("私有配置模块清单不完整。")
@@ -227,7 +229,7 @@ def choose_bundle() -> Path | None:
         root.withdraw()
         root.attributes("-topmost", True)
         selected = filedialog.askopenfilename(
-            title="选择科诚工作台私有配置模块",
+            title="选择 EditOps 私有配置模块",
             filetypes=[("工作台私有模块", "*.kcbundle"), ("所有文件", "*.*")],
         )
         root.destroy()
@@ -317,7 +319,7 @@ def inspect_bundle(source: Path) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="编辑工作台私有配置模块导入导出工具")
+    parser = argparse.ArgumentParser(description="EditOps 私有配置模块导入导出工具")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     export_parser = subparsers.add_parser("export", help="导出当前电脑的私有配置模块")

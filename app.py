@@ -674,7 +674,7 @@ def open_portal_when_ready(url: str) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="启动编辑工作台")
+    parser = argparse.ArgumentParser(description="启动 EditOps")
     parser.add_argument("--host", default=os.environ.get("WORKBENCH_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("WORKBENCH_PORT", "8088")))
     parser.add_argument("--no-browser", action="store_true", help="启动后不自动打开浏览器")
@@ -687,7 +687,7 @@ def main() -> None:
     atexit.register(stop_modules)
     portal_port = find_available_port(args.port)
     portal_url = f"http://{args.host}:{portal_port}"
-    print(f"编辑工作台已启动：{portal_url}", flush=True)
+    print(f"EditOps 已启动：{portal_url}", flush=True)
     print("关闭此窗口即可停止全部模块。", flush=True)
     if not args.no_browser and os.environ.get("WORKBENCH_NO_BROWSER") != "1":
         threading.Thread(target=open_portal_when_ready, args=(portal_url,), daemon=True).start()
